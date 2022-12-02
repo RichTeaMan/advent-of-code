@@ -53,3 +53,14 @@ where
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
+
+#[cfg(test)]
+mod tests {
+    
+    use super::*;
+
+    #[test]
+    fn test() {
+        assert_eq!(day_1().unwrap(), 206582);
+    }
+}
