@@ -100,8 +100,7 @@ where
 {
     let mut score = 0;
     let lines = read_lines(filename)?;
-    for line_res in lines {
-        let line = line_res?;
+    for line in lines.flatten() {
 
         if line.is_empty() {
             continue;
@@ -149,8 +148,7 @@ where
 {
     let mut score = 0;
     let lines = read_lines(filename)?;
-    for line_res in lines {
-        let line = line_res?;
+    for line in lines.flatten() {
 
         if line.is_empty() {
             continue;
