@@ -7,7 +7,7 @@ fn main() {
     let mut max_calories_2 = 0;
     let mut max_calories_3 = 0;
     // File hosts must exist in current path before this produces output
-    if let Ok(lines) = read_lines("./input.txt") {
+    if let Ok(lines) = read_lines("./day-1-input.txt") {
         let mut calories = 0;
         // Consumes the iterator, returns an (Optional) String
         for line_opt in lines {
@@ -40,7 +40,7 @@ fn main() {
         println!("Max calories 1: {max_calories_1}.");
         println!("Max calories 2: {max_calories_2}.");
         println!("Max calories 3: {max_calories_3}.");
-        println!("Answer : {ans}", ans = max_calories_1 + max_calories_2 + max_calories_3);
+        println!("Answer: {ans}", ans = max_calories_1 + max_calories_2 + max_calories_3);
     }
 }
 
