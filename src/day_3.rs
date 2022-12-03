@@ -1,11 +1,16 @@
 use std::io::{self};
 
 use itertools::Itertools;
+use slice_group_by::GroupBy;
 
 use crate::file_utils::read_lines;
 
 pub fn day_3() -> io::Result<i32> {
     fetch_item_priorities("day-3-input.txt")
+}
+
+pub fn day_3_part_2() -> io::Result<i32> {
+    fetch_group_priorities("day-3-input.txt")
 }
 
 fn fetch_item_priorities(filename: &str) -> io::Result<i32> {
@@ -30,6 +35,44 @@ fn fetch_item_priorities(filename: &str) -> io::Result<i32> {
     Ok(priority_sum)
 }
 
+fn fetch_group_priorities(filename: &str) -> io::Result<i32> {
+    let mut priority_sum = 0;
+
+    let lines = read_lines(filename)?;
+    let mut letters = Vec::new();
+    let mut group_count = 0;
+    for line in lines.flatten() {
+        if line.is_empty() {
+            continue;
+        }
+
+        letters.extend(line.chars().unique()); //.collect::<Vec<char>>();
+        group_count += 1;
+        if group_count < 3 {
+            continue;
+        }
+
+        letters.sort();
+        let mut badge = None;
+        for group in letters.linear_group_by(|a, b| a == b) {
+            if group.len() == 3 {
+                assert!(badge.is_none());
+                badge = Some(group[0]);
+            }
+        }
+
+        if let Some(group_letter) = badge {
+            priority_sum += fetch_priority(group_letter);
+        } else {
+            panic!("No group found.");
+        }
+
+        letters.clear();
+        group_count = 0;
+    }
+    Ok(priority_sum)
+}
+
 fn fetch_priority(letter: char) -> i32 {
     if letter.is_ascii_uppercase() {
         (letter as i32) - 38
@@ -48,6 +91,14 @@ mod tests {
         assert_eq!(
             fetch_item_priorities("./day-3-input-test.txt").unwrap(),
             157
+        );
+    }
+
+    #[test]
+    fn part_2_test() {
+        assert_eq!(
+            fetch_group_priorities("./day-3-input-test.txt").unwrap(),
+            70
         );
     }
 
