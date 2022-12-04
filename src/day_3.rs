@@ -46,7 +46,7 @@ fn fetch_group_priorities(filename: &str) -> io::Result<i32> {
             continue;
         }
 
-        letters.extend(line.chars().unique()); //.collect::<Vec<char>>();
+        letters.extend(line.chars().unique());
         group_count += 1;
         if group_count < 3 {
             continue;
