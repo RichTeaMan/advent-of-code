@@ -29,8 +29,12 @@ pub fn day_5() -> io::Result<String> {
     Ok(crane_stacks.read_top_letters())
 }
 
-pub fn day_5_part_2() -> io::Result<i32> {
-    todo!();
+pub fn day_5_part_2() -> io::Result<String> {
+    let path = "./day-5-input.txt";
+    let mut crane_stacks = fetch_starting_stacks(path)?;
+    crane_stacks = execute_bulk_crane_instructions(path, crane_stacks)?;
+
+    Ok(crane_stacks.read_top_letters())
 }
 
 fn fetch_starting_stacks(filepath: &str) -> io::Result<CraneStacks> {
@@ -89,13 +93,56 @@ fn execute_crane_instructions(
             let crate_count: i32 = str::parse(crate_count_s).unwrap();
 
             for _ in 0..crate_count {
-
                 let crane_crate = crane_stacks
                     .stacks
                     .get_mut(start_stack_id)
                     .unwrap()
                     .pop_front()
                     .unwrap();
+                crane_stacks
+                    .stacks
+                    .get_mut(end_stack_id)
+                    .unwrap()
+                    .push_front(crane_crate);
+            }
+        } else {
+            panic!("Unexpected string format: {line}");
+        }
+    }
+    Ok(crane_stacks)
+}
+
+fn execute_bulk_crane_instructions(
+    filepath: &str,
+    mut crane_stacks: CraneStacks,
+) -> io::Result<CraneStacks> {
+    let lines = read_lines(filepath)?;
+    for line in lines.flatten() {
+        if !line.contains("move") {
+            continue;
+        }
+
+        // eg move 1 from 2 to 1
+        if let Some((_move, crate_count_s, _from, start_stack_id_s, _to, end_stack_id_s)) =
+            line.split_whitespace().collect_tuple()
+        {
+            let start_stack_id: usize = str::parse::<usize>(start_stack_id_s).unwrap() - 1;
+            let end_stack_id: usize = str::parse::<usize>(end_stack_id_s).unwrap() - 1;
+            let crate_count: i32 = str::parse(crate_count_s).unwrap();
+
+            let mut temp_stack = Vec::new();
+            for _ in 0..crate_count {
+                let crane_crate = crane_stacks
+                    .stacks
+                    .get_mut(start_stack_id)
+                    .unwrap()
+                    .pop_front()
+                    .unwrap();
+
+                temp_stack.push(crane_crate);
+            }
+            temp_stack.reverse();
+            for crane_crate in temp_stack {
                 crane_stacks
                     .stacks
                     .get_mut(end_stack_id)
@@ -139,6 +186,17 @@ mod tests {
     }
 
     #[test]
-    fn part_2_test() {
+    fn execute_bulk_crane_instructions_small_test() {
+        let mut crane_stacks = fetch_starting_stacks("./day-5-input-test.txt").unwrap();
+        crane_stacks =
+            execute_bulk_crane_instructions("./day-5-input-test.txt", crane_stacks).unwrap();
+        assert_eq!(crane_stacks.read_top_letters(), "MCD");
+    }
+
+    #[test]
+    fn execute_bulk_crane_instructions_test() {
+        let mut crane_stacks = fetch_starting_stacks("./day-5-input.txt").unwrap();
+        crane_stacks = execute_bulk_crane_instructions("./day-5-input.txt", crane_stacks).unwrap();
+        assert_eq!(crane_stacks.read_top_letters(), "HRFTQVWNN");
     }
 }
