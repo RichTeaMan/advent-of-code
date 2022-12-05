@@ -111,6 +111,6 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        assert_eq!(fetch_overlapping_ranges("./day-4-input.txt").unwrap(), 540);
+        assert_eq!(fetch_overlapping_ranges("./day-4-input.txt").unwrap(), 872);
     }
 }
