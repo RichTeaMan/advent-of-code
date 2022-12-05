@@ -45,30 +45,30 @@ fn fetch_starting_stacks(filepath: &str) -> io::Result<CraneStacks> {
             break;
         }
 
-        let mut current_stack = 0;
-        for stack_ele in line
+        for (current_stack, stack_ele) in line
             .chars()
             .chunks(4)
             .into_iter()
             .map(|chunk| chunk.collect::<String>())
             .collect::<Vec<String>>()
+            .into_iter()
+            .enumerate()
         {
             if stacks.len() <= current_stack {
                 stacks.push(VecDeque::new());
             }
 
-            if !&stack_ele.trim().is_empty() {
-                let trim: &[_] = &['[', ']', ' '];
-                let trimmed = stack_ele.trim_matches(trim).to_string();
-
-                assert!(!trimmed.is_empty());
-                let stack_opt = stacks.get_mut(current_stack);
-                stack_opt
-                    .unwrap()
-                    .push_back(trimmed.chars().next().unwrap());
+            if stack_ele.trim().is_empty() {
+                continue;
             }
+            let trim: &[_] = &['[', ']', ' '];
+            let trimmed = stack_ele.trim_matches(trim).to_string();
 
-            current_stack += 1;
+            assert!(!trimmed.is_empty());
+            let stack_opt = stacks.get_mut(current_stack);
+            stack_opt
+                .unwrap()
+                .push_back(trimmed.chars().next().unwrap());
         }
     }
     Ok(CraneStacks { stacks })
