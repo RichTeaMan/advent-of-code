@@ -40,4 +40,8 @@ fn main() {
         answer = day_5_part_2().unwrap()
     );
     println!("Day 6 part 1 answer: {answer}", answer = day_6().unwrap());
+    println!(
+        "Day 6 part 2 answer: {answer}",
+        answer = day_6_part_2().unwrap()
+    );
 }
