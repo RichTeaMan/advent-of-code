@@ -32,11 +32,11 @@ impl ElfRange {
 }
 
 pub fn day_4() -> io::Result<i32> {
-    fetch_overlapping_pairs("day-4-input.txt")
+    fetch_overlapping_pairs("./inputs/day-4-input.txt")
 }
 
 pub fn day_4_part_2() -> io::Result<i32> {
-    fetch_overlapping_ranges("day-4-input.txt")
+    fetch_overlapping_ranges("./inputs/day-4-input.txt")
 }
 
 fn fetch_overlapping_pairs(filename: &str) -> io::Result<i32> {
@@ -91,26 +91,26 @@ mod tests {
     #[test]
     fn small_test() {
         assert_eq!(
-            fetch_overlapping_pairs("./day-4-input-test.txt").unwrap(),
+            fetch_overlapping_pairs("./inputs/day-4-input-test.txt").unwrap(),
             2
         );
     }
 
     #[test]
     fn test() {
-        assert_eq!(fetch_overlapping_pairs("./day-4-input.txt").unwrap(), 540);
+        assert_eq!(fetch_overlapping_pairs("./inputs/day-4-input.txt").unwrap(), 540);
     }
 
     #[test]
     fn small_test_part_2() {
         assert_eq!(
-            fetch_overlapping_ranges("./day-4-input-test.txt").unwrap(),
+            fetch_overlapping_ranges("./inputs/day-4-input-test.txt").unwrap(),
             4
         );
     }
 
     #[test]
     fn test_part_2() {
-        assert_eq!(fetch_overlapping_ranges("./day-4-input.txt").unwrap(), 872);
+        assert_eq!(fetch_overlapping_ranges("./inputs/day-4-input.txt").unwrap(), 872);
     }
 }

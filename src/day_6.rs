@@ -5,11 +5,11 @@ use itertools::Itertools;
 use crate::file_utils::read_lines;
 
 pub fn day_6() -> io::Result<i32> {
-    fetch_pattern_position(4, "day-6-input.txt")
+    fetch_pattern_position(4, "./inputs/day-6-input.txt")
 }
 
 pub fn day_6_part_2() -> io::Result<i32> {
-    fetch_pattern_position(14, "day-6-input.txt")
+    fetch_pattern_position(14, "./inputs/day-6-input.txt")
 }
 
 fn fetch_pattern_position(pattern_length: usize, filename: &str) -> io::Result<i32> {
@@ -38,7 +38,7 @@ mod tests {
     #[test]
     fn small_test() {
         assert_eq!(
-            fetch_pattern_position(4, "./day-6-input-test.txt").unwrap(),
+            fetch_pattern_position(4, "./inputs/day-6-input-test.txt").unwrap(),
             7
         );
     }
@@ -46,7 +46,7 @@ mod tests {
     #[test]
     fn part_2_small_test() {
         assert_eq!(
-            fetch_pattern_position(14, "./day-6-input-test.txt").unwrap(),
+            fetch_pattern_position(14, "./inputs/day-6-input-test.txt").unwrap(),
             19
         );
     }
@@ -54,7 +54,7 @@ mod tests {
     #[test]
     fn test() {
         assert_eq!(
-            fetch_pattern_position(4, "./day-6-input.txt").unwrap(),
+            fetch_pattern_position(4, "./inputs/day-6-input.txt").unwrap(),
             1804
         );
     }
@@ -62,7 +62,7 @@ mod tests {
     #[test]
     fn part_2_test() {
         assert_eq!(
-            fetch_pattern_position(14, "./day-6-input.txt").unwrap(),
+            fetch_pattern_position(14, "./inputs/day-6-input.txt").unwrap(),
             2508
         );
     }

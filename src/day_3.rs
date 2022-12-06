@@ -6,11 +6,11 @@ use slice_group_by::GroupBy;
 use crate::file_utils::read_lines;
 
 pub fn day_3() -> io::Result<i32> {
-    fetch_item_priorities("day-3-input.txt")
+    fetch_item_priorities("./inputs/day-3-input.txt")
 }
 
 pub fn day_3_part_2() -> io::Result<i32> {
-    fetch_group_priorities("day-3-input.txt")
+    fetch_group_priorities("./inputs/day-3-input.txt")
 }
 
 fn fetch_item_priorities(filename: &str) -> io::Result<i32> {
@@ -89,7 +89,7 @@ mod tests {
     #[test]
     fn test() {
         assert_eq!(
-            fetch_item_priorities("./day-3-input-test.txt").unwrap(),
+            fetch_item_priorities("./inputs/day-3-input-test.txt").unwrap(),
             157
         );
     }
@@ -97,7 +97,7 @@ mod tests {
     #[test]
     fn part_2_test() {
         assert_eq!(
-            fetch_group_priorities("./day-3-input-test.txt").unwrap(),
+            fetch_group_priorities("./inputs/day-3-input-test.txt").unwrap(),
             70
         );
     }

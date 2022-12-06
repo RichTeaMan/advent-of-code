@@ -25,7 +25,7 @@ pub fn day_1_part_2() -> io::Result<i32> {
 fn fetch_calories() -> io::Result<Vec<i32>> {
     let mut calories_vec = Vec::new();
 
-    let lines = read_lines("./day-1-input.txt")?;
+    let lines = read_lines("./inputs/day-1-input.txt")?;
     let mut calories = 0;
     for line in lines.flatten() {
         let line_calories_opt = line.parse::<i32>();

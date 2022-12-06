@@ -22,7 +22,7 @@ impl CraneStacks {
 }
 
 pub fn day_5() -> io::Result<String> {
-    let path = "./day-5-input.txt";
+    let path = "./inputs/day-5-input.txt";
     let mut crane_stacks = fetch_starting_stacks(path)?;
     crane_stacks = execute_crane_instructions(path, crane_stacks)?;
 
@@ -30,7 +30,7 @@ pub fn day_5() -> io::Result<String> {
 }
 
 pub fn day_5_part_2() -> io::Result<String> {
-    let path = "./day-5-input.txt";
+    let path = "./inputs/day-5-input.txt";
     let mut crane_stacks = fetch_starting_stacks(path)?;
     crane_stacks = execute_bulk_crane_instructions(path, crane_stacks)?;
 
@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn fetch_starting_stacks_small_test() {
         assert_eq!(
-            fetch_starting_stacks("./day-5-input-test.txt")
+            fetch_starting_stacks("./inputs/day-5-input-test.txt")
                 .unwrap()
                 .read_top_letters(),
             "NDP"
@@ -173,30 +173,30 @@ mod tests {
 
     #[test]
     fn execute_crane_instructions_small_test() {
-        let mut crane_stacks = fetch_starting_stacks("./day-5-input-test.txt").unwrap();
-        crane_stacks = execute_crane_instructions("./day-5-input-test.txt", crane_stacks).unwrap();
+        let mut crane_stacks = fetch_starting_stacks("./inputs/day-5-input-test.txt").unwrap();
+        crane_stacks = execute_crane_instructions("./inputs/day-5-input-test.txt", crane_stacks).unwrap();
         assert_eq!(crane_stacks.read_top_letters(), "CMZ");
     }
 
     #[test]
     fn execute_crane_instructions_test() {
-        let mut crane_stacks = fetch_starting_stacks("./day-5-input.txt").unwrap();
-        crane_stacks = execute_crane_instructions("./day-5-input.txt", crane_stacks).unwrap();
+        let mut crane_stacks = fetch_starting_stacks("./inputs/day-5-input.txt").unwrap();
+        crane_stacks = execute_crane_instructions("./inputs/day-5-input.txt", crane_stacks).unwrap();
         assert_eq!(crane_stacks.read_top_letters(), "FRDSQRRCD");
     }
 
     #[test]
     fn execute_bulk_crane_instructions_small_test() {
-        let mut crane_stacks = fetch_starting_stacks("./day-5-input-test.txt").unwrap();
+        let mut crane_stacks = fetch_starting_stacks("./inputs/day-5-input-test.txt").unwrap();
         crane_stacks =
-            execute_bulk_crane_instructions("./day-5-input-test.txt", crane_stacks).unwrap();
+            execute_bulk_crane_instructions("./inputs/day-5-input-test.txt", crane_stacks).unwrap();
         assert_eq!(crane_stacks.read_top_letters(), "MCD");
     }
 
     #[test]
     fn execute_bulk_crane_instructions_test() {
-        let mut crane_stacks = fetch_starting_stacks("./day-5-input.txt").unwrap();
-        crane_stacks = execute_bulk_crane_instructions("./day-5-input.txt", crane_stacks).unwrap();
+        let mut crane_stacks = fetch_starting_stacks("./inputs/day-5-input.txt").unwrap();
+        crane_stacks = execute_bulk_crane_instructions("./inputs/day-5-input.txt", crane_stacks).unwrap();
         assert_eq!(crane_stacks.read_top_letters(), "HRFTQVWNN");
     }
 }

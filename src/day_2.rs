@@ -87,11 +87,11 @@ impl Shape {
 }
 
 pub fn day_2() -> io::Result<i32> {
-    game_file_loader("./day-2-input.txt")
+    game_file_loader("./inputs/day-2-input.txt")
 }
 
 pub fn day_2_part_2() -> io::Result<i32> {
-    part_2_game_file_loader("./day-2-input.txt")
+    part_2_game_file_loader("./inputs/day-2-input.txt")
 }
 
 fn game_file_loader<P>(filename: P) -> io::Result<i32>
@@ -196,13 +196,13 @@ mod tests {
 
     #[test]
     fn small_test() {
-        assert_eq!(game_file_loader("./day-2-input-test.txt").unwrap(), 15);
+        assert_eq!(game_file_loader("./inputs/day-2-input-test.txt").unwrap(), 15);
     }
 
     #[test]
     fn part_2_small_test() {
         assert_eq!(
-            part_2_game_file_loader("./day-2-input-test.txt").unwrap(),
+            part_2_game_file_loader("./inputs/day-2-input-test.txt").unwrap(),
             12
         );
     }
