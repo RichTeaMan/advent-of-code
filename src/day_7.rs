@@ -129,7 +129,7 @@ fn fetch_file_tree(filename: &str) -> io::Result<Rc<RefCell<ElfFile>>> {
             }
         } else if line == "$ ls" {
             // do nothing I guess
-        } else if line.starts_with("$") {
+        } else if line.starts_with('$') {
             panic!("unrecognised command");
         } else if line.starts_with("dir ") {
             let name = line.replace("dir ", "");
@@ -146,23 +146,21 @@ fn fetch_file_tree(filename: &str) -> io::Result<Rc<RefCell<ElfFile>>> {
                 })));
         }
         // parse some actual files
-        else {
-            if let Some((size_s, name)) = line.split(' ').collect_tuple() {
-                let size: usize = size_s.parse().unwrap();
+        else if let Some((size_s, name)) = line.split(' ').collect_tuple() {
+            let size: usize = size_s.parse().unwrap();
 
-                current_dir
-                    .as_ref()
-                    .borrow_mut()
-                    .sub_files
-                    .push(Rc::new(RefCell::new(ElfFile {
-                        name: name.to_string(),
-                        size,
-                        parent: Some(current_dir.clone()),
-                        sub_files: Vec::new(),
-                    })));
-            } else {
-                panic!("Unknown file input.");
-            }
+            current_dir
+                .as_ref()
+                .borrow_mut()
+                .sub_files
+                .push(Rc::new(RefCell::new(ElfFile {
+                    name: name.to_string(),
+                    size,
+                    parent: Some(current_dir.clone()),
+                    sub_files: Vec::new(),
+                })));
+        } else {
+            panic!("Unknown file input.");
         }
     }
     Ok(root)
