@@ -98,7 +98,10 @@ mod tests {
 
     #[test]
     fn test() {
-        assert_eq!(fetch_overlapping_pairs("./inputs/day-4-input.txt").unwrap(), 540);
+        assert_eq!(
+            fetch_overlapping_pairs("./inputs/day-4-input.txt").unwrap(),
+            540
+        );
     }
 
     #[test]
@@ -111,6 +114,9 @@ mod tests {
 
     #[test]
     fn test_part_2() {
-        assert_eq!(fetch_overlapping_ranges("./inputs/day-4-input.txt").unwrap(), 872);
+        assert_eq!(
+            fetch_overlapping_ranges("./inputs/day-4-input.txt").unwrap(),
+            872
+        );
     }
 }

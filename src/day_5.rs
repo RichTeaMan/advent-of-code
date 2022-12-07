@@ -174,14 +174,16 @@ mod tests {
     #[test]
     fn execute_crane_instructions_small_test() {
         let mut crane_stacks = fetch_starting_stacks("./inputs/day-5-input-test.txt").unwrap();
-        crane_stacks = execute_crane_instructions("./inputs/day-5-input-test.txt", crane_stacks).unwrap();
+        crane_stacks =
+            execute_crane_instructions("./inputs/day-5-input-test.txt", crane_stacks).unwrap();
         assert_eq!(crane_stacks.read_top_letters(), "CMZ");
     }
 
     #[test]
     fn execute_crane_instructions_test() {
         let mut crane_stacks = fetch_starting_stacks("./inputs/day-5-input.txt").unwrap();
-        crane_stacks = execute_crane_instructions("./inputs/day-5-input.txt", crane_stacks).unwrap();
+        crane_stacks =
+            execute_crane_instructions("./inputs/day-5-input.txt", crane_stacks).unwrap();
         assert_eq!(crane_stacks.read_top_letters(), "FRDSQRRCD");
     }
 
@@ -196,7 +198,8 @@ mod tests {
     #[test]
     fn execute_bulk_crane_instructions_test() {
         let mut crane_stacks = fetch_starting_stacks("./inputs/day-5-input.txt").unwrap();
-        crane_stacks = execute_bulk_crane_instructions("./inputs/day-5-input.txt", crane_stacks).unwrap();
+        crane_stacks =
+            execute_bulk_crane_instructions("./inputs/day-5-input.txt", crane_stacks).unwrap();
         assert_eq!(crane_stacks.read_top_letters(), "HRFTQVWNN");
     }
 }

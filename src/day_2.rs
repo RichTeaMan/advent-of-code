@@ -196,7 +196,10 @@ mod tests {
 
     #[test]
     fn small_test() {
-        assert_eq!(game_file_loader("./inputs/day-2-input-test.txt").unwrap(), 15);
+        assert_eq!(
+            game_file_loader("./inputs/day-2-input-test.txt").unwrap(),
+            15
+        );
     }
 
     #[test]
