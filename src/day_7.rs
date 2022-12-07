@@ -16,14 +16,6 @@ struct ElfFile {
 }
 
 impl ElfFile {
-    pub fn new(name: &str, parent: Rc<RefCell<ElfFile>>) -> ElfFile {
-        ElfFile {
-            name: name.to_string(),
-            parent: Some(parent),
-            size: 0,
-            sub_files: Vec::new(),
-        }
-    }
     pub fn root() -> ElfFile {
         ElfFile {
             name: "/".to_string(),
@@ -62,13 +54,39 @@ pub fn day_7() -> io::Result<usize> {
     Ok(directory_under(100_000, b))
 }
 
-pub fn day_7_part_2() -> io::Result<i32> {
-    todo!();
+pub fn day_7_part_2() -> io::Result<usize> {
+    let elf_file = fetch_file_tree("./inputs/day-7-input.txt").unwrap();
+    Ok(directory_to_delete(70000000, 30000000, elf_file.borrow()).unwrap())
 }
 
-fn directory_under(max_directory_size: usize, elf_file_cell: Ref<ElfFile>) -> usize {
+fn directory_to_delete(
+    total_disk_space: usize,
+    needed_space: usize,
+    elf_file: Ref<ElfFile>,
+) -> Option<usize> {
+    let space_to_free = needed_space - (total_disk_space - elf_file.total_size());
+    search_directory_to_delete(space_to_free, elf_file)
+}
+
+fn search_directory_to_delete(space_to_free: usize, elf_file: Ref<ElfFile>) -> Option<usize> {
+    let mut dir_space_to_delete = None;
+
+    if elf_file.directory_size() > space_to_free {
+        dir_space_to_delete = Some(elf_file.directory_size());
+
+        for sub in &elf_file.sub_files {
+            if let Some(size) = search_directory_to_delete(space_to_free, sub.borrow()) {
+                if size < dir_space_to_delete.unwrap() {
+                    dir_space_to_delete = Some(size);
+                }
+            }
+        }
+    }
+    dir_space_to_delete
+}
+
+fn directory_under(max_directory_size: usize, elf_file: Ref<ElfFile>) -> usize {
     let mut size = 0;
-    let elf_file = elf_file_cell;
     if elf_file.directory_size() < max_directory_size {
         size += elf_file.directory_size();
     }
@@ -175,5 +193,14 @@ mod tests {
     #[test]
     fn test() {
         assert_eq!(day_7().unwrap(), 1989474,)
+    }
+
+    #[test]
+    fn part_2_test() {
+        let test_elf_file = fetch_file_tree("./inputs/day-7-input.txt").unwrap();
+        assert_eq!(
+            directory_to_delete(70000000, 30000000, test_elf_file.borrow()).unwrap(),
+            1111607
+        );
     }
 }
