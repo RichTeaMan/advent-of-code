@@ -15,7 +15,7 @@ use crate::day_4::{day_4, day_4_part_2};
 use crate::day_5::{day_5, day_5_part_2};
 use crate::day_6::{day_6, day_6_part_2};
 use crate::day_7::{day_7, day_7_part_2};
-use crate::day_8::{day_8};
+use crate::day_8::{day_8, day_8_part_2};
 
 fn main() {
     println!("Day 1 part 1 answer: {answer}", answer = day_1().unwrap());
@@ -54,4 +54,8 @@ fn main() {
         answer = day_7_part_2().unwrap()
     );
     println!("Day 8 part 1 answer: {answer}", answer = day_8().unwrap());
+    println!(
+        "Day 8 part 2 answer: {answer}",
+        answer = day_8_part_2().unwrap()
+    );
 }

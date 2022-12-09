@@ -12,8 +12,80 @@ pub fn day_8() -> io::Result<i32> {
     Ok(visible_trees)
 }
 
-pub fn day_8_part_2() -> io::Result<usize> {
-    todo!();
+pub fn day_8_part_2() -> io::Result<i32> {
+    let score = fetch_best_score("./inputs/day-8-input.txt")?;
+    Ok(score)
+}
+
+fn fetch_best_score(filename: &str) -> io::Result<i32> {
+    let mut highest_score = 0;
+
+    let trees = load_trees(filename)?;
+
+    let row_count = fetch_row_count(&trees);
+    let column_count = fetch_column_count(&trees);
+
+    for y in 1..(row_count - 1) {
+        for x in 1..(column_count - 1) {
+            let mut left = 0;
+            let mut up = 0;
+            let mut right = 0;
+            let mut down = 0;
+
+            let tree = fetch_tree(&trees, x, y);
+
+            // walk left
+            for z in (0..(x)).rev() {
+                let a = z;
+                let b = y;
+                let f_tree = fetch_tree(&trees, a, b);
+                left += 1;
+                if f_tree >= tree {
+                    break;
+                }
+            }
+
+            // walk right
+            for z in (x + 1)..column_count {
+                let a = z;
+                let b = y;
+                let f_tree = fetch_tree(&trees, a, b);
+                right += 1;
+                if f_tree >= tree {
+                    break;
+                }
+            }
+
+            // walk up
+            for z in (0..(y)).rev() {
+                let a = x;
+                let b = z;
+                let f_tree = fetch_tree(&trees, a, b);
+                up += 1;
+                if f_tree >= tree {
+                    break;
+                }
+            }
+
+            // walk down
+            for z in (y + 1)..row_count {
+                let a = x;
+                let b = z;
+                let f_tree = fetch_tree(&trees, a, b);
+                down += 1;
+                if f_tree >= tree {
+                    break;
+                }
+            }
+            let score = left * up * right * down;
+
+            if score > highest_score {
+                highest_score = score;
+            }
+        }
+    }
+
+    Ok(highest_score)
 }
 
 fn fetch_visible_trees(filename: &str) -> io::Result<i32> {
@@ -93,7 +165,6 @@ fn load_trees(filename: &str) -> io::Result<Vec<Vec<i32>>> {
 
 fn fetch_tree(trees: &[Vec<i32>], x: i32, y: i32) -> i32 {
     trees[y as usize][x as usize]
-    //trees[x as usize][y as usize]
 }
 
 fn fetch_row_count(trees: &[Vec<i32>]) -> i32 {
@@ -122,6 +193,22 @@ mod tests {
         assert_eq!(
             fetch_visible_trees("./inputs/day-8-input.txt").unwrap(),
             1546
+        );
+    }
+
+    #[test]
+    fn part_2_small_test() {
+        assert_eq!(
+            fetch_best_score("./inputs/day-8-input-test.txt").unwrap(),
+            8
+        );
+    }
+
+    #[test]
+    fn part_2_test() {
+        assert_eq!(
+            fetch_best_score("./inputs/day-8-input.txt").unwrap(),
+            519064
         );
     }
 }
