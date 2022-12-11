@@ -1,4 +1,6 @@
 mod day_1;
+mod day_10;
+mod day_11;
 mod day_2;
 mod day_3;
 mod day_4;
@@ -7,10 +9,11 @@ mod day_6;
 mod day_7;
 mod day_8;
 mod day_9;
-mod day_10;
 mod file_utils;
 
 use crate::day_1::{day_1, day_1_part_2};
+use crate::day_10::{day_10, day_10_part_2};
+use crate::day_11::{day_11, day_11_part_2};
 use crate::day_2::{day_2, day_2_part_2};
 use crate::day_3::{day_3, day_3_part_2};
 use crate::day_4::{day_4, day_4_part_2};
@@ -19,7 +22,6 @@ use crate::day_6::{day_6, day_6_part_2};
 use crate::day_7::{day_7, day_7_part_2};
 use crate::day_8::{day_8, day_8_part_2};
 use crate::day_9::{day_9, day_9_part_2};
-use crate::day_10::{day_10, day_10_part_2};
 
 fn main() {
     println!("Day 1 part 1 answer: {answer}", answer = day_1().unwrap());
@@ -68,6 +70,9 @@ fn main() {
         answer = day_9_part_2().unwrap()
     );
     println!("Day 10 part 1 answer: {answer}", answer = day_10().unwrap());
-    println!("Day 10 part 2 answer:\n{answer}", answer = day_10_part_2().unwrap());
-    
+    println!(
+        "Day 10 part 2 answer:\n{answer}",
+        answer = day_10_part_2().unwrap()
+    );
+    println!("Day 11 part 1 answer: {answer}", answer = day_11().unwrap());
 }
