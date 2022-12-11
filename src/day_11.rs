@@ -13,25 +13,25 @@ const FALSE_PREFIX: &str = "If false: throw to monkey ";
 
 #[derive(Default)]
 struct Monkey {
-    pub items: Vec<i32>,
+    pub items: Vec<i64>,
     pub operation: Operation,
-    pub test: i32,
-    pub true_result: i32,
-    pub false_result: i32,
-
-    pub inspected_items: i32,
+    pub test: i64,
+    pub true_result: i64,
+    pub false_result: i64,
+    pub inspected_items: i64,
 }
 
 impl Monkey {
     /**
      * Throws items -> (monkey id, new item)
      */
-    pub fn throw_items(&mut self) -> Vec<(i32, i32)> {
+    pub fn throw_items(&mut self, worry_level: i64, mod_value: i64) -> Vec<(i64, i64)> {
         let mut results = Vec::new();
 
         for item in &self.items {
             self.inspected_items += 1;
-            let new_value = self.operation.calc(*item) / 3;
+            let new_value = (self.operation.calc(*item) / worry_level) % mod_value;
+
             let result_monkey = if new_value % self.test == 0 {
                 self.true_result
             } else {
@@ -60,11 +60,11 @@ impl Operand {
 }
 
 struct Operation {
-    pub a: Option<i32>,
+    pub a: Option<i64>,
 
     pub operand: Operand,
 
-    pub b: Option<i32>,
+    pub b: Option<i64>,
 }
 
 impl Default for Operation {
@@ -90,15 +90,15 @@ impl Operation {
         }
     }
 
-    fn value_from_str(value: &str) -> Option<i32> {
+    fn value_from_str(value: &str) -> Option<i64> {
         let mut result = None;
         if value != "old" {
-            result = Some(value.parse::<i32>().unwrap());
+            result = Some(value.parse::<i64>().unwrap());
         }
         result
     }
 
-    pub fn calc(&self, value: i32) -> i32 {
+    pub fn calc(&self, value: i64) -> i64 {
         let av = self.a.unwrap_or(value);
         let bv = self.b.unwrap_or(value);
 
@@ -109,16 +109,17 @@ impl Operation {
     }
 }
 
-pub fn day_11() -> io::Result<i32> {
-    let positions = monkey_sim("./inputs/day-11-input.txt")?;
+pub fn day_11() -> io::Result<i64> {
+    let positions = monkey_sim(3, 20, "./inputs/day-11-input.txt")?;
     Ok(positions)
 }
 
-pub fn day_11_part_2() -> io::Result<String> {
-    todo!();
+pub fn day_11_part_2() -> io::Result<i64> {
+    let positions = monkey_sim(1, 10000, "./inputs/day-11-input.txt")?;
+    Ok(positions)
 }
 
-fn monkey_sim(filename: &str) -> io::Result<i32> {
+fn monkey_sim(worry_level: i64, rounds: i64, filename: &str) -> io::Result<i64> {
     let mut monkey_list = Vec::new();
     let mut current_monkey = Monkey::default();
 
@@ -137,7 +138,7 @@ fn monkey_sim(filename: &str) -> io::Result<i32> {
             let items_s = trim.replace(STARTING_ITEMS_PREFIX, "");
             let items = items_s
                 .split(',')
-                .map(|s| s.trim().parse::<i32>().unwrap())
+                .map(|s| s.trim().parse::<i64>().unwrap())
                 .collect_vec();
             current_monkey.items = items;
         } else if trim.starts_with(OPERATION_PREFIX) {
@@ -145,22 +146,28 @@ fn monkey_sim(filename: &str) -> io::Result<i32> {
             current_monkey.operation = Operation::from_str(operation.as_str());
         } else if trim.starts_with(TEST_PREFIX) {
             let test_s = trim.replace(TEST_PREFIX, "");
-            current_monkey.test = test_s.parse::<i32>().unwrap();
+            current_monkey.test = test_s.parse::<i64>().unwrap();
         } else if trim.starts_with(TRUE_PREFIX) {
             let value_s = trim.replace(TRUE_PREFIX, "");
-            current_monkey.true_result = value_s.parse::<i32>().unwrap();
+            current_monkey.true_result = value_s.parse::<i64>().unwrap();
         } else if trim.starts_with(FALSE_PREFIX) {
             let value_s = trim.replace(FALSE_PREFIX, "");
-            current_monkey.false_result = value_s.parse::<i32>().unwrap();
+            current_monkey.false_result = value_s.parse::<i64>().unwrap();
         } else {
             panic!("Unknown line {trim}.");
         }
     }
+
     monkey_list.push(current_monkey);
 
-    for _ in 0..20 {
+    let mut mod_value = 1;
+    for monkey in &monkey_list {
+        mod_value *= monkey.test;
+    }
+
+    for _ in 0..rounds {
         for monkey_i in 0..monkey_list.len() {
-            let throws = monkey_list[monkey_i].throw_items();
+            let throws = monkey_list[monkey_i].throw_items(worry_level, mod_value);
 
             for (monkey_id, item) in throws {
                 monkey_list[monkey_id as usize].items.push(item);
@@ -182,11 +189,33 @@ mod tests {
 
     #[test]
     fn small_test() {
-        assert_eq!(monkey_sim("./inputs/day-11-input-test.txt").unwrap(), 10605);
+        assert_eq!(
+            monkey_sim(3, 20, "./inputs/day-11-input-test.txt").unwrap(),
+            10605
+        );
     }
 
     #[test]
     fn test() {
-        assert_eq!(monkey_sim("./inputs/day-11-input.txt").unwrap(), 108240);
+        assert_eq!(
+            monkey_sim(3, 20, "./inputs/day-11-input.txt").unwrap(),
+            108240
+        );
+    }
+
+    #[test]
+    fn part_2_small_test() {
+        assert_eq!(
+            monkey_sim(1, 10000, "./inputs/day-11-input-test.txt").unwrap(),
+            2713310158
+        );
+    }
+
+    #[test]
+    fn part_2_test() {
+        assert_eq!(
+            monkey_sim(1, 10000, "./inputs/day-11-input.txt").unwrap(),
+            25712998901
+        );
     }
 }
