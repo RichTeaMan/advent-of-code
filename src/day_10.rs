@@ -4,16 +4,16 @@ use itertools::Itertools;
 
 use crate::file_utils::read_lines;
 
-struct CPU {
+struct Cpu {
     pub x_reg: i32,
 
     pub cycle_count: i32,
 
     pub display: String,
 }
-impl CPU {
-    fn new() -> CPU {
-        CPU {
+impl Cpu {
+    fn new() -> Cpu {
+        Cpu {
             x_reg: 1,
             cycle_count: 0,
             display: "".to_string(),
@@ -33,12 +33,12 @@ impl CPU {
     fn tick(&mut self) {
         let line_pos = self.cycle_count % 40;
         if line_pos == 0 && self.cycle_count > 0 {
-            self.display.push_str("\n");
+            self.display.push('\n');
         }
         if ((line_pos - 1)..=(line_pos + 1)).contains(&self.x_reg) {
-            self.display.push_str("#");
+            self.display.push('#');
         } else {
-            self.display.push_str(".");
+            self.display.push('.');
         }
         self.cycle_count += 1;
     }
@@ -52,7 +52,7 @@ pub fn day_10() -> io::Result<(i32, String)> {
 fn draw_cycles(filename: &str) -> io::Result<(i32, String)> {
     let mut result = 0;
     let mut last_x = 0;
-    let mut cpu = CPU::new();
+    let mut cpu = Cpu::new();
 
     let mut sample_cycle = 19;
     let step_sample_cycle = 40;

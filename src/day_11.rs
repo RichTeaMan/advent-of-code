@@ -45,15 +45,15 @@ impl Monkey {
 }
 
 enum Operand {
-    PLUS,
-    MULTIPLY,
+    Plus,
+    Multiply,
 }
 
 impl Operand {
     pub fn from_str(s: &str) -> Self {
         match s {
-            "+" => Self::PLUS,
-            "*" => Self::MULTIPLY,
+            "+" => Self::Plus,
+            "*" => Self::Multiply,
             _ => panic!("Unknown operation"),
         }
     }
@@ -71,7 +71,7 @@ impl Default for Operation {
     fn default() -> Self {
         Self {
             a: Default::default(),
-            operand: Operand::PLUS,
+            operand: Operand::Plus,
             b: Default::default(),
         }
     }
@@ -103,8 +103,8 @@ impl Operation {
         let bv = self.b.unwrap_or(value);
 
         match self.operand {
-            Operand::PLUS => av + bv,
-            Operand::MULTIPLY => av * bv,
+            Operand::Plus => av + bv,
+            Operand::Multiply => av * bv,
         }
     }
 }
@@ -130,7 +130,7 @@ fn monkey_sim(worry_level: i64, rounds: i64, filename: &str) -> io::Result<i64> 
         }
         let trim = line.trim();
         if trim.starts_with("Monkey") {
-            if !trim.contains("0") {
+            if !trim.contains('0') {
                 monkey_list.push(current_monkey);
             }
             current_monkey = Monkey::default();
