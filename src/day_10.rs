@@ -44,51 +44,18 @@ impl CPU {
     }
 }
 
-pub fn day_10() -> io::Result<i32> {
-    let positions = measure_cycles(20, 40, "./inputs/day-10-input.txt")?;
-    Ok(positions)
+pub fn day_10() -> io::Result<(i32, String)> {
+    let result = draw_cycles("./inputs/day-10-input.txt")?;
+    Ok(result)
 }
 
-pub fn day_10_part_2() -> io::Result<String> {
-    let display = draw_cycles("./inputs/day-10-input.txt")?;
-    Ok(display)
-}
-
-fn draw_cycles(filename: &str) -> io::Result<String> {
-    let mut cpu = CPU::new();
-
-    let lines = read_lines(filename)?;
-    for line in lines.flatten() {
-        if line.is_empty() {
-            continue;
-        }
-
-        if line.starts_with("noop") {
-            cpu.noop();
-        } else if line.starts_with("addx") {
-            if let Some((_, v_s)) = line.split(' ').collect_tuple() {
-                let v = v_s.parse::<i32>().unwrap();
-                cpu.addx(v);
-            }
-        } else {
-            panic!("Unknown command: {line}");
-        }
-    }
-
-    Ok(cpu.display)
-}
-
-fn measure_cycles(
-    start_sample_cycle: i32,
-    step_sample_cycle: i32,
-    filename: &str,
-) -> io::Result<i32> {
+fn draw_cycles(filename: &str) -> io::Result<(i32, String)> {
     let mut result = 0;
     let mut last_x = 0;
-
     let mut cpu = CPU::new();
 
-    let mut sample_cycle = start_sample_cycle - 1;
+    let mut sample_cycle = 19;
+    let step_sample_cycle = 40;
 
     let lines = read_lines(filename)?;
     for line in lines.flatten() {
@@ -106,7 +73,6 @@ fn measure_cycles(
         } else {
             panic!("Unknown command: {line}");
         }
-
         if cpu.cycle_count > sample_cycle {
             result += (sample_cycle + 1) * last_x;
             sample_cycle += step_sample_cycle;
@@ -114,7 +80,7 @@ fn measure_cycles(
         last_x = cpu.x_reg;
     }
 
-    Ok(result)
+    Ok((result, cpu.display))
 }
 
 #[cfg(test)]
@@ -125,23 +91,20 @@ mod tests {
     #[test]
     fn small_test() {
         assert_eq!(
-            measure_cycles(20, 40, "./inputs/day-10-input-test.txt").unwrap(),
+            draw_cycles("./inputs/day-10-input-test.txt").unwrap().0,
             13140
         );
     }
 
     #[test]
     fn test() {
-        assert_eq!(
-            measure_cycles(20, 40, "./inputs/day-10-input.txt").unwrap(),
-            15220
-        );
+        assert_eq!(draw_cycles("./inputs/day-10-input.txt").unwrap().0, 15220);
     }
 
     #[test]
     fn part_2_small_test() {
         assert_eq!(
-            draw_cycles("./inputs/day-10-input-test.txt").unwrap(),
+            draw_cycles("./inputs/day-10-input-test.txt").unwrap().1,
             r#"##..##..##..##..##..##..##..##..##..##..
 ###...###...###...###...###...###...###.
 ####....####....####....####....####....
@@ -154,7 +117,7 @@ mod tests {
     #[test]
     fn part_2_test() {
         assert_eq!(
-            draw_cycles("./inputs/day-10-input.txt").unwrap(),
+            draw_cycles("./inputs/day-10-input.txt").unwrap().1,
             r#"###..####.####.####.#..#.###..####..##..
 #..#.#.......#.#....#.#..#..#.#....#..#.
 #..#.###....#..###..##...###..###..#..#.
