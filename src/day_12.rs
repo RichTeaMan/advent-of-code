@@ -87,7 +87,7 @@ impl MapTree {
         self.nodes.push(MapTreeNode {
             parent_index: Some(parent_index),
             children_index: Vec::new(),
-            direction: direction,
+            direction,
             x,
             y,
             step_count: self.nodes[parent_index].step_count + 1,
@@ -113,7 +113,7 @@ impl MapTree {
                 return true;
             }
         }
-        return false;
+        false
     }
 }
 
@@ -149,26 +149,24 @@ fn build_map(filename: &str) -> io::Result<Map> {
     let mut start_opt = None;
     let mut end_opt = None;
     for line in lines.flatten() {
-        let mut x = 0;
         if line.is_empty() {
             continue;
         }
 
         let mut row = Vec::new();
-        for c in line.chars() {
+        for (x, c) in line.chars().enumerate() {
             let elevation = match c {
                 'S' => {
-                    start_opt = Some((x, y));
+                    start_opt = Some((x as i32, y));
                     fetch_elevation('a')
                 }
                 'E' => {
-                    end_opt = Some((x, y));
+                    end_opt = Some((x as i32, y));
                     fetch_elevation('z')
                 }
                 _ => fetch_elevation(c),
             };
             row.push(elevation);
-            x += 1;
         }
         map.add_row(row);
         y += 1;
@@ -198,7 +196,7 @@ fn climb_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
     let mut completed_route_step_count = None;
 
-    while check_stack.len() > 0 {
+    while !check_stack.is_empty() {
         let index = check_stack.pop_front().unwrap();
 
         let (current_x, current_y, step_count) = map_tree.fetch_node_coords(index);
@@ -218,13 +216,12 @@ fn climb_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
         // north
         if let Some(left_index) = check_cell(
-            &map,
+            map,
             &mut map_tree,
             jump_height,
             index,
             current_elevation,
-            current_x,
-            current_y,
+            (current_x, current_y),
             Direction::North,
         ) {
             check_stack.push_back(left_index);
@@ -232,13 +229,12 @@ fn climb_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
         // east
         if let Some(east_index) = check_cell(
-            &map,
+            map,
             &mut map_tree,
             jump_height,
             index,
             current_elevation,
-            current_x,
-            current_y,
+            (current_x, current_y),
             Direction::East,
         ) {
             check_stack.push_back(east_index);
@@ -246,13 +242,12 @@ fn climb_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
         // south
         if let Some(south_index) = check_cell(
-            &map,
+            map,
             &mut map_tree,
             jump_height,
             index,
             current_elevation,
-            current_x,
-            current_y,
+            (current_x, current_y),
             Direction::South,
         ) {
             check_stack.push_back(south_index);
@@ -260,13 +255,12 @@ fn climb_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
         // west
         if let Some(west_index) = check_cell(
-            &map,
+            map,
             &mut map_tree,
             jump_height,
             index,
             current_elevation,
-            current_x,
-            current_y,
+            (current_x, current_y),
             Direction::West,
         ) {
             check_stack.push_back(west_index);
@@ -280,7 +274,7 @@ fn climb_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
         }
     }
 
-    if results.len() == 0 {
+    if results.is_empty() {
         return None;
     }
 
@@ -290,20 +284,16 @@ fn climb_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
     let mut display = Vec::new();
     let mut display_index = result.0;
-    loop {
-        if let Some(p_r) = map_tree.nodes[display_index].parent_index {
-            let c = match map_tree.nodes[display_index].direction {
-                Direction::North => '^',
-                Direction::East => '>',
-                Direction::South => 'v',
-                Direction::West => '<',
-                Direction::None => '?',
-            };
-            display.push((map_tree.nodes[p_r].x, map_tree.nodes[p_r].y, c));
-            display_index = p_r;
-        } else {
-            break;
-        }
+    while let Some(p_r) = map_tree.nodes[display_index].parent_index {
+        let c = match map_tree.nodes[display_index].direction {
+            Direction::North => '^',
+            Direction::East => '>',
+            Direction::South => 'v',
+            Direction::West => '<',
+            Direction::None => '?',
+        };
+        display.push((map_tree.nodes[p_r].x, map_tree.nodes[p_r].y, c));
+        display_index = p_r;
     }
 
     //print_journey(map, display);
@@ -323,7 +313,7 @@ fn descend_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
     let mut completed_route_step_count = None;
 
-    while check_stack.len() > 0 {
+    while !check_stack.is_empty() {
         let index = check_stack.pop_front().unwrap();
 
         let (current_x, current_y, step_count) = map_tree.fetch_node_coords(index);
@@ -333,7 +323,7 @@ fn descend_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
                 continue;
             }
         }
-        
+
         let current_elevation = map.fetch_cell(current_x, current_y).unwrap();
         if current_elevation == 0 {
             completed_route_step_count = Some(step_count);
@@ -342,13 +332,12 @@ fn descend_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
         // north
         if let Some(left_index) = check_cell(
-            &map,
+            map,
             &mut map_tree,
             jump_height,
             index,
             current_elevation,
-            current_x,
-            current_y,
+            (current_x, current_y),
             Direction::North,
         ) {
             check_stack.push_back(left_index);
@@ -356,13 +345,12 @@ fn descend_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
         // east
         if let Some(east_index) = check_cell(
-            &map,
+            map,
             &mut map_tree,
             jump_height,
             index,
             current_elevation,
-            current_x,
-            current_y,
+            (current_x, current_y),
             Direction::East,
         ) {
             check_stack.push_back(east_index);
@@ -370,13 +358,12 @@ fn descend_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
         // south
         if let Some(south_index) = check_cell(
-            &map,
+            map,
             &mut map_tree,
             jump_height,
             index,
             current_elevation,
-            current_x,
-            current_y,
+            (current_x, current_y),
             Direction::South,
         ) {
             check_stack.push_back(south_index);
@@ -384,13 +371,12 @@ fn descend_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
         // west
         if let Some(west_index) = check_cell(
-            &map,
+            map,
             &mut map_tree,
             jump_height,
             index,
             current_elevation,
-            current_x,
-            current_y,
+            (current_x, current_y),
             Direction::West,
         ) {
             check_stack.push_back(west_index);
@@ -404,7 +390,7 @@ fn descend_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
         }
     }
 
-    if results.len() == 0 {
+    if results.is_empty() {
         return None;
     }
 
@@ -414,20 +400,16 @@ fn descend_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
 
     let mut display = Vec::new();
     let mut display_index = result.0;
-    loop {
-        if let Some(p_r) = map_tree.nodes[display_index].parent_index {
-            let c = match map_tree.nodes[display_index].direction {
-                Direction::North => '^',
-                Direction::East => '>',
-                Direction::South => 'v',
-                Direction::West => '<',
-                Direction::None => '?',
-            };
-            display.push((map_tree.nodes[p_r].x, map_tree.nodes[p_r].y, c));
-            display_index = p_r;
-        } else {
-            break;
-        }
+    while let Some(p_r) = map_tree.nodes[display_index].parent_index {
+        let c = match map_tree.nodes[display_index].direction {
+            Direction::North => '^',
+            Direction::East => '>',
+            Direction::South => 'v',
+            Direction::West => '<',
+            Direction::None => '?',
+        };
+        display.push((map_tree.nodes[p_r].x, map_tree.nodes[p_r].y, c));
+        display_index = p_r;
     }
 
     //print_journey(map, display);
@@ -454,7 +436,7 @@ fn print_journey(map: &Map, display: Vec<(i32, i32, char)>) {
                 print!("{to_print}");
             }
         }
-        println!("");
+        println!();
     }
 }
 
@@ -464,23 +446,22 @@ fn check_cell(
     jump_height: i32,
     index: usize,
     current_elevation: i32,
-    current_x: i32,
-    current_y: i32,
+    current_coord: (i32, i32),
     direction: Direction,
 ) -> Option<usize> {
     let new_x = match direction {
-        Direction::East => current_x + 1,
-        Direction::West => current_x - 1,
-        _ => current_x,
+        Direction::East => current_coord.0 + 1,
+        Direction::West => current_coord.0 - 1,
+        _ => current_coord.0,
     };
     let new_y = match direction {
-        Direction::North => current_y - 1,
-        Direction::South => current_y + 1,
-        _ => current_y,
+        Direction::North => current_coord.1 - 1,
+        Direction::South => current_coord.1 + 1,
+        _ => current_coord.1,
     };
     if let Some(elevation) = map.fetch_cell(new_x, new_y) {
-
-        if is_climable( current_elevation, elevation, jump_height) && !map_tree.location_visited(new_x, new_y)
+        if is_climable(current_elevation, elevation, jump_height)
+            && !map_tree.location_visited(new_x, new_y)
         {
             let new_index = map_tree.create_node(new_x, new_y, index, direction);
             return Some(new_index);
@@ -492,14 +473,13 @@ fn check_cell(
 fn is_climable(current_elevation: i32, target_elevation: i32, jump_height: i32) -> bool {
     if jump_height > 0 {
         jump_height + current_elevation >= target_elevation
-    }
-    else {
+    } else {
         current_elevation <= target_elevation - jump_height
     }
 }
 
 fn fetch_elevation(c: char) -> i32 {
-    ((c as u8) - ('a' as u8)) as i32
+    ((c as u8) - b'a') as i32
 }
 
 #[cfg(test)]
