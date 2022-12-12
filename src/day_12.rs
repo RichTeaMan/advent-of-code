@@ -97,13 +97,17 @@ impl MapTree {
         index
     }
 
-    pub fn fetch_node_coords(&mut self, index: usize) -> (i32, i32) {
-        (self.nodes[index].x, self.nodes[index].y)
+    pub fn fetch_node_coords(&mut self, index: usize) -> (i32, i32, i32) {
+        (
+            self.nodes[index].x,
+            self.nodes[index].y,
+            self.nodes[index].step_count,
+        )
     }
 
     pub fn location_visited(&self, x: i32, y: i32) -> bool {
         // I believe there's a chance a short-cut could be found that this function
-        // would disallow, but that hasn't happened in the test cases so *shrug*. 
+        // would disallow, but that hasn't happened in the test cases so *shrug*.
         for node in &self.nodes {
             if node.x == x && node.y == y {
                 return true;
@@ -126,12 +130,15 @@ struct MapTreeNode {
 }
 
 pub fn day_12() -> io::Result<i32> {
-    let positions = climb_sim("./inputs/day-12-input.txt")?;
+    let map = build_map("./inputs/day-12-input.txt")?;
+    let positions = climb_sim(map.start, &map).unwrap();
     Ok(positions)
 }
 
-pub fn day_12_part_2() -> io::Result<i64> {
-    todo!();
+pub fn day_12_part_2() -> io::Result<i32> {
+    let map = build_map("./inputs/day-12-input.txt")?;
+    let positions = descend_sim(map.end, &map).unwrap();
+    Ok(positions)
 }
 
 fn build_map(filename: &str) -> io::Result<Map> {
@@ -179,21 +186,34 @@ fn build_map(filename: &str) -> io::Result<Map> {
     Ok(map)
 }
 
-fn climb_sim(filename: &str) -> io::Result<i32> {
+fn climb_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
     let jump_height = 1;
 
-    let map = build_map(filename)?;
     let mut map_tree = MapTree::new();
 
-    let current_node_index = map_tree.create_root(map.start.0, map.start.1);
+    let current_node_index = map_tree.create_root(start_point.0, start_point.1);
 
     let mut check_stack = VecDeque::new();
     check_stack.push_front(current_node_index);
 
+    let mut completed_route_step_count = None;
+
     while check_stack.len() > 0 {
         let index = check_stack.pop_front().unwrap();
 
-        let (current_x, current_y) = map_tree.fetch_node_coords(index);
+        let (current_x, current_y, step_count) = map_tree.fetch_node_coords(index);
+
+        if let Some(completed_count) = completed_route_step_count {
+            if step_count > completed_count {
+                continue;
+            }
+        }
+
+        if current_x == map.end.0 && current_y == map.end.1 {
+            completed_route_step_count = Some(step_count);
+            continue;
+        }
+
         let current_elevation = map.fetch_cell(current_x, current_y).unwrap();
 
         // north
@@ -261,7 +281,7 @@ fn climb_sim(filename: &str) -> io::Result<i32> {
     }
 
     if results.len() == 0 {
-        panic!("No route found");
+        return None;
     }
 
     results.sort_by(|(_, a), (_, b)| a.cmp(b));
@@ -288,11 +308,135 @@ fn climb_sim(filename: &str) -> io::Result<i32> {
 
     //print_journey(map, display);
 
-    Ok(map_tree.nodes[result.0].step_count)
+    Some(map_tree.nodes[result.0].step_count)
+}
+
+fn descend_sim(start_point: (i32, i32), map: &Map) -> Option<i32> {
+    let jump_height = -1;
+
+    let mut map_tree = MapTree::new();
+
+    let current_node_index = map_tree.create_root(start_point.0, start_point.1);
+
+    let mut check_stack = VecDeque::new();
+    check_stack.push_front(current_node_index);
+
+    let mut completed_route_step_count = None;
+
+    while check_stack.len() > 0 {
+        let index = check_stack.pop_front().unwrap();
+
+        let (current_x, current_y, step_count) = map_tree.fetch_node_coords(index);
+
+        if let Some(completed_count) = completed_route_step_count {
+            if step_count > completed_count {
+                continue;
+            }
+        }
+        
+        let current_elevation = map.fetch_cell(current_x, current_y).unwrap();
+        if current_elevation == 0 {
+            completed_route_step_count = Some(step_count);
+            continue;
+        }
+
+        // north
+        if let Some(left_index) = check_cell(
+            &map,
+            &mut map_tree,
+            jump_height,
+            index,
+            current_elevation,
+            current_x,
+            current_y,
+            Direction::North,
+        ) {
+            check_stack.push_back(left_index);
+        }
+
+        // east
+        if let Some(east_index) = check_cell(
+            &map,
+            &mut map_tree,
+            jump_height,
+            index,
+            current_elevation,
+            current_x,
+            current_y,
+            Direction::East,
+        ) {
+            check_stack.push_back(east_index);
+        }
+
+        // south
+        if let Some(south_index) = check_cell(
+            &map,
+            &mut map_tree,
+            jump_height,
+            index,
+            current_elevation,
+            current_x,
+            current_y,
+            Direction::South,
+        ) {
+            check_stack.push_back(south_index);
+        }
+
+        // west
+        if let Some(west_index) = check_cell(
+            &map,
+            &mut map_tree,
+            jump_height,
+            index,
+            current_elevation,
+            current_x,
+            current_y,
+            Direction::West,
+        ) {
+            check_stack.push_back(west_index);
+        }
+    }
+
+    let mut results = Vec::new();
+    for i in 0..map_tree.nodes.len() {
+        if map.fetch_cell(map_tree.nodes[i].x, map_tree.nodes[i].y) == Some(0) {
+            results.push((i, map_tree.nodes[i].step_count));
+        }
+    }
+
+    if results.len() == 0 {
+        return None;
+    }
+
+    results.sort_by(|(_, a), (_, b)| a.cmp(b));
+
+    let result = results[0];
+
+    let mut display = Vec::new();
+    let mut display_index = result.0;
+    loop {
+        if let Some(p_r) = map_tree.nodes[display_index].parent_index {
+            let c = match map_tree.nodes[display_index].direction {
+                Direction::North => '^',
+                Direction::East => '>',
+                Direction::South => 'v',
+                Direction::West => '<',
+                Direction::None => '?',
+            };
+            display.push((map_tree.nodes[p_r].x, map_tree.nodes[p_r].y, c));
+            display_index = p_r;
+        } else {
+            break;
+        }
+    }
+
+    //print_journey(map, display);
+
+    Some(map_tree.nodes[result.0].step_count)
 }
 
 #[allow(dead_code)]
-fn print_journey(map: Map, display: Vec<(i32, i32, char)>) {
+fn print_journey(map: &Map, display: Vec<(i32, i32, char)>) {
     for y in 0..map.height() {
         for x in 0..map.width() {
             if x == map.start.0 && y == map.start.1 {
@@ -335,14 +479,23 @@ fn check_cell(
         _ => current_y,
     };
     if let Some(elevation) = map.fetch_cell(new_x, new_y) {
-        if jump_height + current_elevation >= elevation
-            && !map_tree.location_visited(new_x, new_y)
+
+        if is_climable( current_elevation, elevation, jump_height) && !map_tree.location_visited(new_x, new_y)
         {
             let new_index = map_tree.create_node(new_x, new_y, index, direction);
             return Some(new_index);
         }
     }
     None
+}
+
+fn is_climable(current_elevation: i32, target_elevation: i32, jump_height: i32) -> bool {
+    if jump_height > 0 {
+        jump_height + current_elevation >= target_elevation
+    }
+    else {
+        current_elevation <= target_elevation - jump_height
+    }
 }
 
 fn fetch_elevation(c: char) -> i32 {
@@ -362,11 +515,25 @@ mod tests {
 
     #[test]
     fn small_test() {
-        assert_eq!(climb_sim("./inputs/day-12-input-test.txt").unwrap(), 31);
+        let map = build_map("./inputs/day-12-input-test.txt").unwrap();
+        assert_eq!(climb_sim(map.start, &map).unwrap(), 31);
     }
 
     #[test]
     fn test() {
-        assert_eq!(climb_sim("./inputs/day-12-input.txt").unwrap(), 380);
+        let map = build_map("./inputs/day-12-input.txt").unwrap();
+        assert_eq!(climb_sim(map.start, &map).unwrap(), 380);
+    }
+
+    #[test]
+    fn part_2_small_test() {
+        let map = build_map("./inputs/day-12-input-test.txt").unwrap();
+        assert_eq!(descend_sim(map.end, &map).unwrap(), 29);
+    }
+
+    #[test]
+    fn part_2_test() {
+        let map = build_map("./inputs/day-12-input.txt").unwrap();
+        assert_eq!(descend_sim(map.end, &map).unwrap(), 375);
     }
 }
