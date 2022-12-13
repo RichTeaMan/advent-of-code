@@ -28,8 +28,8 @@ impl Packet {
         }
         let mut packets = Packet::from_vec(char_buffer);
         assert_eq!(1, packets.len());
-        let p = packets.swap_remove(0);
-        return p;
+        
+        packets.swap_remove(0)
     }
 
     pub fn from_vec(char_buffer: Vec<char>) -> Vec<Packet> {
@@ -155,7 +155,7 @@ fn cmp_array(a: &Packet, b: &Packet) -> Ordering {
     if a.list.len() > b.list.len() {
         return Ordering::Greater;
     }
-    return Ordering::Equal;
+    Ordering::Equal
 }
 
 impl fmt::Display for Packet {
