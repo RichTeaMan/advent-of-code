@@ -70,9 +70,6 @@ impl Packet {
                     if let Ok(num_value) = number_buffer.parse::<i32>() {
                         list.push(Packet::from_number(num_value));
                         number_buffer.clear();
-                    } else {
-                        // probably fine, moving on from array termination.
-                        //panic!("Cannot parse number: '{number_buffer}'.");
                     }
                 }
                 other => {
