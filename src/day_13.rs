@@ -104,10 +104,17 @@ impl Packet {
     }
 }
 
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl Eq for Packet {}
+
 impl PartialEq for Packet {
-    // needed for partial ord. I have no plans to implement this.
-    fn eq(&self, _other: &Self) -> bool {
-        todo!();
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value && self.list == other.list
     }
 }
 
@@ -194,8 +201,46 @@ fn compare_sets_from_file(filename: &str) -> io::Result<i32> {
     Ok(result)
 }
 
+fn order_sets_from_file(filename: &str) -> io::Result<i32> {
+    let lines = read_lines(filename)?;
+
+    let divider_a = "[[2]]";
+    let divider_b = "[[6]]";
+
+    let mut packets = Vec::new();
+    for line in lines.flatten() {
+        if line.is_empty() {
+            continue;
+        }
+        packets.push(Packet::from_str(line.as_str()));
+    }
+
+    packets.push(Packet::from_str(divider_a));
+    packets.push(Packet::from_str(divider_b));
+
+    packets.sort();
+
+    let a = Packet::from_str(divider_a);
+    let b = Packet::from_str(divider_b);
+    let mut divider_a_index = None;
+    let mut divider_b_index = None;
+    for (i, p) in packets.iter().enumerate() {
+        if *p == a {
+            divider_a_index = Some(i + 1);
+        } else if *p == b {
+            divider_b_index = Some(i + 1);
+        }
+    }
+
+    Ok(divider_a_index.unwrap() as i32 * divider_b_index.unwrap() as i32)
+}
+
 pub fn day_13() -> io::Result<i32> {
     compare_sets_from_file("./inputs/day-13-input.txt")
+}
+
+pub fn day_13_part_2() -> io::Result<i32> {
+    order_sets_from_file("./inputs/day-13-input.txt")
 }
 
 #[cfg(test)]
@@ -230,6 +275,18 @@ mod tests {
         assert_eq!(2, c.list.len());
         assert_eq!(Some(17), c.list[0].value);
         assert_eq!(Some(512), c.list[1].value);
+    }
+
+    #[test]
+    fn equal_test() {
+        assert!(Packet::from_str("[1,1,3,1,1]") != Packet::from_str("[1,1,5,1,1]"));
+        assert!(Packet::from_str("[1,1,3,1,1]") == Packet::from_str("[1,1,3,1,1]"));
+
+        assert!(Packet::from_str("[[2]]") == Packet::from_str("[[2]]"));
+        assert!(Packet::from_str("[[6]]") == Packet::from_str("[[6]]"));
+
+        assert!(Packet::from_str("[[2]]") != Packet::from_str("[[6]]"));
+        assert!(Packet::from_str("[[6]]") != Packet::from_str("[[2]]"));
     }
 
     #[test]
@@ -277,5 +334,21 @@ Packet::from_str("[[[5,[8,8,6,4,4],[2,9,0,9]],6,[],[[4,0],[],0]],[],[],[8,3]]"))
             compare_sets_from_file("./inputs/day-13-input.txt").unwrap(),
             6046
         );
+    }
+
+    #[test]
+    fn part_2_small_test() {
+        assert_eq!(
+            order_sets_from_file("./inputs/day-13-input-test.txt").unwrap(),
+            140
+        )
+    }
+
+    #[test]
+    fn part_2_test() {
+        assert_eq!(
+            order_sets_from_file("./inputs/day-13-input.txt").unwrap(),
+            21423
+        )
     }
 }
