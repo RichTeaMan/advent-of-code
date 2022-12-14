@@ -28,7 +28,7 @@ impl Packet {
         }
         let mut packets = Packet::from_vec(char_buffer);
         assert_eq!(1, packets.len());
-        
+
         packets.swap_remove(0)
     }
 
