@@ -30,6 +30,9 @@ use crate::day_8::{day_8, day_8_part_2};
 use crate::day_9::{day_9, day_9_part_2};
 
 fn main() {
+    println!("Advent of Code 2022: https://adventofcode.com/2022");
+    println!();
+
     println!("Day 1 part 1 answer: {answer}", answer = day_1().unwrap());
     println!(
         "Day 1 part 2 answer: {answer}",
