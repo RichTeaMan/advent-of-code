@@ -181,20 +181,33 @@ fn read_slice_from_file(filename: &str) -> io::Result<Vec<Sensor>> {
 }
 
 fn impossible_beacons_in_row(row_number: i32, sensors: Vec<Sensor>) -> i32 {
-    let map = Map::create_from_sensors(sensors);
+    let mut row: HashSet<i32> = HashSet::new();
+    let mut beacons: HashSet<i32> = HashSet::new();
+    let mut count = 0;
+    for sensor in &sensors {
+        // now for the tricky part
+        let distance = sensor.beacon_distance();
 
-    map.draw_map();
+        if sensor.y - distance >= row_number || sensor.y + distance <= row_number  {
+            continue;
+        }
+        if sensor.beacon.y == row_number {
+            beacons.insert(sensor.beacon.x);
+        }
+        for length in 0..=distance {
+            for i in 0..=length {
+                let d_x = i;
+                let d_y = length - i;
 
-    let row = map.get(&row_number).unwrap();
-
-    let mut result = 0;
-    let (x_start, x_end) = map.x_limits();
-    for x in x_start..=x_end {
-        if row.get(&x) == Some(&SENSOR_COVERAGE_SYMBOL) {
-            result += 1;
+                if sensor.y + d_y == row_number || sensor.y - d_y == row_number {
+                    row.insert(sensor.x + d_x);
+                    row.insert(sensor.x - d_x);
+                    //count += 2;
+                }
+            }
         }
     }
-    result
+    (row.len() - beacons.len()) as i32
 }
 
 pub fn day_15() -> io::Result<i32> {
@@ -214,7 +227,7 @@ mod tests {
         assert_eq!(result, 26);
     }
 
-    #[test]
+    //#[test]
     fn test() {
         let sensors = read_slice_from_file("./inputs/day-15-input-test.txt").unwrap();
         let result = impossible_beacons_in_row(10, sensors);
