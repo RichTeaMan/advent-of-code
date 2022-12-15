@@ -188,23 +188,19 @@ fn impossible_beacons_in_row(row_number: i32, sensors: Vec<Sensor>) -> i32 {
         // now for the tricky part
         let distance = sensor.beacon_distance();
 
-        if sensor.y - distance >= row_number || sensor.y + distance <= row_number  {
+        if sensor.y - distance >= row_number || sensor.y + distance <= row_number {
             continue;
         }
         if sensor.beacon.y == row_number {
             beacons.insert(sensor.beacon.x);
         }
-        for length in 0..=distance {
-            for i in 0..=length {
-                let d_x = i;
-                let d_y = length - i;
 
-                if sensor.y + d_y == row_number || sensor.y - d_y == row_number {
-                    row.insert(sensor.x + d_x);
-                    row.insert(sensor.x - d_x);
-                    //count += 2;
-                }
-            }
+        // x range
+        let x_r = (distance - (row_number - sensor.y).abs());
+
+        for x in 0..=x_r {
+            row.insert(sensor.x - x);
+            row.insert(sensor.x + x);
         }
     }
     (row.len() - beacons.len()) as i32
