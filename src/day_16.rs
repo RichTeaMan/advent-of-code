@@ -1,4 +1,4 @@
-use std::io;
+use std::{collections::HashSet, io};
 
 use itertools::Itertools;
 
@@ -116,7 +116,6 @@ struct ValveNode {
     pub name: String,
     pub connected_indexes: Vec<usize>,
     pub flow_rate: i32,
-    pub used: bool,
 }
 
 impl ValveNode {
@@ -125,7 +124,6 @@ impl ValveNode {
             name,
             connected_indexes: Vec::new(),
             flow_rate: 0,
-            used: false,
         }
     }
 }
@@ -167,121 +165,93 @@ fn build_nodes(filename: &str) -> io::Result<NodeList> {
     Ok(node_list)
 }
 
-fn open_valves(node_list: &mut NodeList) -> i32 {
-    let mut current_node_index = 0;
-    let mut remaining_minutes = 30;
-    let mut pressure = 0;
+#[derive(Clone)]
+struct JourneyResult {
+    pub pressure_released: i32,
 
+    pub valves_with_time: Vec<(String, i32)>,
 
-    let mut debug = Vec::new();
+    pub time_remaining: i32,
+}
 
-    loop {
-        let name = &node_list[current_node_index].name.clone();
-        println!("At location {name}. Released pressure is {pressure}. Remaining time is {remaining_minutes}.");
+fn journey_recurse(
+    journey_lengths: &Vec<Vec<i32>>,
+    start_index: usize,
+    node_list: &NodeList,
+    visited: &HashSet<usize>,
+    journey_result: JourneyResult,
+) -> Vec<JourneyResult> {
+    let mut sub_visited = visited.clone();
+    sub_visited.insert(start_index);
 
-        let mut indexed_flows = Vec::new();
-        for (i, node) in node_list.iter().enumerate() {
-            if !node.used {
-                indexed_flows.push((i, node.flow_rate));
-            }
-        }
+    let mut results = Vec::new();
 
-        if indexed_flows.len() == 0 {
-            break;
-        }
-
-        indexed_flows.sort_by(|a, b| b.1.cmp(&a.1));
-        let distances = node_list.fetch_all_journey_length(current_node_index);
-
-        let mut scores: Vec<(usize, f64)> = Vec::new();
-        for (index, flow_rate) in &indexed_flows {
-            let distance = distances[*index];
-
-            if distance + 1 > remaining_minutes || distance == 0 || *flow_rate == 0 {
+    for (i, node) in node_list.iter().enumerate() {
+        if node.flow_rate > 0 && !sub_visited.contains(&i) {
+            let distance = journey_lengths[start_index][i];
+            let updated_time = journey_result.time_remaining - (distance + 1);
+            if updated_time < 0 {
                 continue;
             }
 
-            // idfk
-            //let score = flow_rate as f64 / distance as f64;
+            let mut sub_journey_result = journey_result.clone();
 
-            // dead end penalty
-            let penalty = if node_list[*index].connected_indexes.len() == 1 {
-                0.80
-            } else {
-                1.0
-            };
+            sub_journey_result.time_remaining = updated_time;
+            sub_journey_result.pressure_released +=
+                sub_journey_result.time_remaining * node_list[i].flow_rate;
+            sub_journey_result
+                .valves_with_time
+                .push((node_list[i].name.clone(), sub_journey_result.time_remaining));
 
-            let adj_minutes = remaining_minutes - (distance + 1);
-
-            let score = (adj_minutes * flow_rate) as f64 * penalty;
-            //let score = (adj_minutes * flow_rate) as f64 - ((distance * distance) as f64 * 0.9);
-
-            //let score = ( ( (remaining_minutes - (distance + 1)) * flow_rate )  + 1000 *  node_list[index].connected_indexes.len() as i32  )  as f64;
-
-            // and find score of next closest valve
-            let mut second_scores = Vec::new();
-            let second_distances = node_list.fetch_all_journey_length(*index);
-            for (second_index, second_flow_rate) in &indexed_flows {
-                if second_index == index {
-                    continue;
-                }
-                let second_score =
-                    (adj_minutes - (second_distances[*second_index] + 1)) * second_flow_rate;
-
-                second_scores.push((second_index, second_score));
-            }
-
-            second_scores.sort_by(|(_, a_score), (_, b_score)| b_score.cmp(&a_score));
-
-            //let second_thing = 0.0;
-            let second_thing = second_scores[0].1 as f64;
-            //let second_thing = (second_scores.iter().take(2).map(|ss| ss.1).sum::<i32>()) as f64;
-            //let second_thing = ((second_scores.iter().take(2).map(|ss| ss.1).sum::<i32>()) as f64) / second_scores.len() as f64;
-
-            let total_score = score + second_thing;
-            let curent_name = &node_list[*index].name.clone();
-            println!(
-                "    Score summary for {curent_name} -> {score} + {second_thing} = {total_score}"
+            let result = journey_recurse(
+                journey_lengths,
+                i,
+                node_list,
+                &sub_visited,
+                sub_journey_result,
             );
-            for (i, score) in &second_scores {
-                let score_name = &node_list[**i].name.clone();
-                println!("        Secondary score {score_name}: {score}");
-            }
-
-            scores.push((*index, total_score));
+            results.extend(result);
         }
-
-        if scores.len() == 0 {
-            break;
-        }
-
-        scores.sort_by(|(_, a_score), (_, b_score)| b_score.total_cmp(&a_score));
-
-        for (i, score) in &scores {
-            let score_name = &node_list[*i].name.clone();
-            println!("{score_name}: {score}");
-        }
-
-        let (travel_index, _) = scores[0];
-
-        debug.push(format!("{name} pressure: {pressure} time: {remaining_minutes}"));
-        // extra minute to open valve
-        remaining_minutes -= distances[travel_index] + 1;
-        node_list[travel_index].used = true;
-
-        
-        pressure += node_list[travel_index].flow_rate * remaining_minutes;
-        current_node_index = travel_index;
-    }
-    let name = &node_list[current_node_index].name.clone();
-    debug.push(format!("{name} pressure: {pressure} time: {remaining_minutes}"));
-        
-
-    for d in debug {
-        println!("{d}");
     }
 
-    pressure
+    if results.len() == 0 {
+        return vec![journey_result];
+    }
+    return results;
+}
+
+fn open_valves(node_list: &mut NodeList) -> i32 {
+    let start_node_name = "AA";
+    let start_node_index = node_list.fetch_index_by_name("AA").unwrap();
+    let remaining_minutes = 30;
+
+    let mut journey_lengths = Vec::new();
+    for (i, _) in node_list.iter().enumerate() {
+        let lengths = node_list.fetch_all_journey_length(i);
+        journey_lengths.push(lengths);
+    }
+
+    let visited = HashSet::new();
+    let journey_result = JourneyResult {
+        pressure_released: 0,
+        valves_with_time: vec![(start_node_name.to_string(), 30)],
+        time_remaining: remaining_minutes,
+    };
+    let mut results = journey_recurse(
+        &journey_lengths,
+        start_node_index,
+        node_list,
+        &visited,
+        journey_result,
+    );
+
+    results.sort_by(|a, b| b.pressure_released.cmp(&a.pressure_released));
+
+    for (valve, time_rem) in &results[0].valves_with_time {
+        println!("Valve: {valve} Time: {time_rem}");
+    }
+
+    results[0].pressure_released
 }
 
 pub fn day_16() -> io::Result<i32> {
@@ -331,5 +301,13 @@ mod tests {
 
         let result = open_valves(&mut node_list);
         assert_eq!(result, 1651);
+    }
+
+    #[test]
+    fn test() {
+        let mut node_list = build_nodes("./inputs/day-16-input.txt").unwrap();
+
+        let result = open_valves(&mut node_list);
+        assert_eq!(result, 2059);
     }
 }
