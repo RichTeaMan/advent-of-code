@@ -96,25 +96,22 @@ fn purge_ranges(mut ranges: Vec<(i32, i32)>) -> Vec<(i32, i32)> {
     ranges.reverse();
     let mut current = ranges.pop().unwrap();
 
-    loop {
-        if let Some(range) = ranges.pop() {
-            if current.1 < range.0 {
-                purged.push(current);
-                current = range;
-            } else if current.1 >= range.0 && current.1 <= range.1 {
-                current.1 = range.1;
-            }
-        } else {
-            break;
+    while let Some(range) = ranges.pop() {
+        if current.1 < range.0 {
+            purged.push(current);
+            current = range;
+        } else if current.1 >= range.0 && current.1 <= range.1 {
+            current.1 = range.1;
         }
     }
+
     purged.push(current);
     purged
 }
 
 fn find_missing_beacon_frequency(sensors: &Vec<Sensor>, row_count: i32) -> i64 {
     for y in (0..row_count).rev() {
-        if let (_, Some(x)) = impossible_beacons_in_row(y, &sensors) {
+        if let (_, Some(x)) = impossible_beacons_in_row(y, sensors) {
             return (4_000_000_i64 * x as i64) + (y as i64);
         }
     }
