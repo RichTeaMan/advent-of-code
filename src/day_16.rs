@@ -170,12 +170,21 @@ struct JourneyResult {
     pub pressure_released: i32,
 
     pub valves_with_time: Vec<(String, i32)>,
-
-    pub time_remaining: i32,
-
+    
     pub visited: HashSet<usize>,
 
+    pub agents: Vec<Agent>    
+}
+
+#[derive(Clone)]
+struct Agent {
+    
+    pub time_remaining: i32,
     pub current_index: usize
+}
+
+fn node_select_recurse(&mut selected_nodes: HashSet<i32>) {
+
 }
 
 fn journey_recurse(
@@ -187,9 +196,28 @@ fn journey_recurse(
 
     let mut results = Vec::new();
 
+
+    let unvisited = (0..node_list.len()).filter(|x|!journey_result.visited.contains(&x)).collect_vec();
+    let node_collections = unvisited.iter().combinations(journey_result.agents.len());
+    let mut node_queue = Vec::new();
     for (i, node) in node_list.iter().enumerate() {
+
+        let g = vec![1,2,3];
+        g.com
+
+        for dimension in 0..journey_result.agents.len() {
+
+        }
+    }
+
+
+
+
+    for (i, node) in node_list.iter().enumerate() {
+        for agent in journey_result.agents {
         if node.flow_rate > 0 && !journey_result.visited.contains(&i) {
-            let distance = journey_lengths[journey_result.current_index][i];
+
+            let distance = journey_lengths[agent.current_index][i];
 
             let updated_time = journey_result.time_remaining - (distance + 1);
             if updated_time < 0 {
@@ -209,6 +237,7 @@ fn journey_recurse(
 
             let result = journey_recurse(agents, journey_lengths, node_list, sub_journey_result);
             results.extend(result);
+        }
         }
     }
 
@@ -234,9 +263,8 @@ fn open_valves(agents: i32, node_list: &mut NodeList) -> i32 {
     let journey_result = JourneyResult {
         pressure_released: 0,
         valves_with_time: vec![(start_node_name.to_string(), 30)],
-        time_remaining: remaining_minutes,
         visited,
-        current_index: start_node_index
+        agents: vec![Agent{ time_remaining: remaining_minutes, current_index: start_node_index }]
     };
     let mut results = journey_recurse(
         agents,
