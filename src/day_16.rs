@@ -1,4 +1,7 @@
-use std::{collections::HashSet, io};
+use std::{
+    collections::{HashMap, HashSet},
+    io,
+};
 
 use itertools::Itertools;
 
@@ -13,7 +16,7 @@ trait NodeListExt {
 
     fn fetch_connected_name(&self, index: usize) -> Vec<String>;
 
-    fn fetch_names(&self, indexes: &Vec<usize>) -> Vec<String>;
+    fn fetch_names(&self, indexes: &[usize]) -> Vec<String>;
 
     fn fetch_journey_length(&self, current_index: usize, destination_index: usize) -> i32;
 
@@ -49,7 +52,7 @@ impl NodeListExt for NodeList {
         names
     }
 
-    fn fetch_names(&self, indexes: &Vec<usize>) -> Vec<String> {
+    fn fetch_names(&self, indexes: &[usize]) -> Vec<String> {
         let mut names = Vec::new();
         for i in indexes {
             names.push(self[*i].name.clone());
@@ -81,7 +84,7 @@ impl NodeListExt for NodeList {
             indexes_to_check = new_indexes;
         }
 
-        return visited[destination_index];
+        visited[destination_index]
     }
 
     fn fetch_all_journey_length(&self, current_index: usize) -> Vec<i32> {
@@ -108,7 +111,7 @@ impl NodeListExt for NodeList {
             indexes_to_check = new_indexes;
         }
 
-        return visited;
+        visited
     }
 }
 
@@ -157,7 +160,7 @@ fn build_nodes(filename: &str) -> io::Result<NodeList> {
             node_list[index].flow_rate = flow_rate;
             let indexes = connected
                 .split(',')
-                .map(|c| node_list.fetch_or_create_index_by_name(c.clone()))
+                .map(|c| node_list.fetch_or_create_index_by_name(c))
                 .collect_vec();
             node_list[index].connected_indexes.extend(indexes);
         }
@@ -175,16 +178,14 @@ struct JourneyResult {
 
     pub visited: HashSet<usize>,
 
-    pub current_index: usize
+    pub current_index: usize,
 }
 
 fn journey_recurse(
-    agents: i32,
     journey_lengths: &Vec<Vec<i32>>,
     node_list: &NodeList,
     journey_result: JourneyResult,
 ) -> Vec<JourneyResult> {
-
     let mut results = Vec::new();
 
     for (i, node) in node_list.iter().enumerate() {
@@ -207,21 +208,50 @@ fn journey_recurse(
             sub_journey_result.visited.insert(i);
             sub_journey_result.current_index = i;
 
-            let result = journey_recurse(agents, journey_lengths, node_list, sub_journey_result);
+            let result = journey_recurse(journey_lengths, node_list, sub_journey_result);
             results.extend(result);
         }
     }
 
-    if results.len() == 0 {
-        return vec![journey_result];
-    }
-    return results;
+    results.push(journey_result);
+    results
 }
 
-fn open_valves(agents: i32, node_list: &mut NodeList) -> i32 {
+fn open_valves(node_list: &mut NodeList) -> i32 {
     let start_node_name = "AA";
     let start_node_index = node_list.fetch_index_by_name("AA").unwrap();
     let remaining_minutes = 30;
+
+    let mut visited = HashSet::new();
+    visited.insert(start_node_index);
+    let mut journey_lengths = Vec::new();
+    for (i, node) in node_list.iter().enumerate() {
+        let lengths = node_list.fetch_all_journey_length(i);
+        journey_lengths.push(lengths);
+
+        if node.flow_rate == 0 {
+            visited.insert(i);
+        }
+    }
+
+    let journey_result = JourneyResult {
+        pressure_released: 0,
+        valves_with_time: vec![(start_node_name.to_string(), 30)],
+        time_remaining: remaining_minutes,
+        visited,
+        current_index: start_node_index,
+    };
+    let mut results = journey_recurse(&journey_lengths, node_list, journey_result);
+
+    results.sort_by(|a, b| b.pressure_released.cmp(&a.pressure_released));
+
+    results[0].pressure_released
+}
+
+fn open_valves_with_two(node_list: &mut NodeList) -> i32 {
+    let start_node_name = "AA";
+    let start_node_index = node_list.fetch_index_by_name("AA").unwrap();
+    let remaining_minutes = 26;
 
     let mut journey_lengths = Vec::new();
     for (i, _) in node_list.iter().enumerate() {
@@ -229,42 +259,51 @@ fn open_valves(agents: i32, node_list: &mut NodeList) -> i32 {
         journey_lengths.push(lengths);
     }
 
-    let mut visited = HashSet::new();
-    visited.insert(start_node_index);
     let journey_result = JourneyResult {
         pressure_released: 0,
         valves_with_time: vec![(start_node_name.to_string(), 30)],
         time_remaining: remaining_minutes,
-        visited,
-        current_index: start_node_index
+        visited: HashSet::new(),
+        current_index: start_node_index,
     };
-    let mut results = journey_recurse(
-        agents,
-        &journey_lengths,
-        node_list,
-        journey_result,
-    );
+    let results = journey_recurse(&journey_lengths, node_list, journey_result);
+    let mut deduped = HashMap::new();
+    for r in results {
+        let key = r.visited.iter().map(|v| 1_usize << v).sum::<usize>();
 
-    results.sort_by(|a, b| b.pressure_released.cmp(&a.pressure_released));
-
-    for (valve, time_rem) in &results[0].valves_with_time {
-        println!("Valve: {valve} Time: {time_rem}");
+        let pressure = i32::max(
+            *deduped.get(&key).unwrap_or(&r.pressure_released),
+            r.pressure_released,
+        );
+        deduped.insert(key, pressure);
     }
 
-    results[0].pressure_released
+    let mut not_overlapping_results = Vec::new();
+    for (k1, v1) in &deduped {
+        for (k2, v2) in &deduped {
+            if k1 & k2 == 0 {
+                not_overlapping_results.push(v1 + v2);
+            }
+        }
+    }
+
+    not_overlapping_results.sort();
+    not_overlapping_results.reverse();
+
+    not_overlapping_results[0]
 }
 
 pub fn day_16() -> io::Result<i32> {
     let mut node_list = build_nodes("./inputs/day-16-input.txt").unwrap();
 
-    let result = open_valves(1, &mut node_list);
+    let result = open_valves(&mut node_list);
     Ok(result)
 }
 
 pub fn day_16_part_2() -> io::Result<i32> {
     let mut node_list = build_nodes("./inputs/day-16-input.txt").unwrap();
 
-    let result = open_valves(2, &mut node_list);
+    let result = open_valves_with_two(&mut node_list);
     Ok(result)
 }
 
@@ -302,7 +341,7 @@ mod tests {
     fn small_test() {
         let mut node_list = build_nodes("./inputs/day-16-input-test.txt").unwrap();
 
-        let result = open_valves(1, &mut node_list);
+        let result = open_valves(&mut node_list);
         assert_eq!(result, 1651);
     }
 
@@ -310,7 +349,7 @@ mod tests {
     fn test() {
         let mut node_list = build_nodes("./inputs/day-16-input.txt").unwrap();
 
-        let result = open_valves(1, &mut node_list);
+        let result = open_valves(&mut node_list);
         assert_eq!(result, 2059);
     }
 
@@ -318,7 +357,15 @@ mod tests {
     fn part_2_small_test() {
         let mut node_list = build_nodes("./inputs/day-16-input-test.txt").unwrap();
 
-        let result = open_valves(2, &mut node_list);
+        let result = open_valves_with_two(&mut node_list);
         assert_eq!(result, 1707);
+    }
+
+    #[test]
+    fn part_2_test() {
+        let mut node_list = build_nodes("./inputs/day-16-input.txt").unwrap();
+
+        let result = open_valves_with_two(&mut node_list);
+        assert_eq!(result, 2790);
     }
 }
