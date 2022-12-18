@@ -135,7 +135,7 @@ fn calculate_height(blocks_to_drop: u64, filename: &str) -> io::Result<u64> {
             }
 
             shape_id += 1;
-            shape_id = shape_id % 5;
+            shape_id %= 5;
 
             shape = fetch_shape(shape_id);
             shape_coord = (LEFT_MARGIN, top + DOWN_MARGIN as i32 + 1);
