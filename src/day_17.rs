@@ -100,13 +100,13 @@ fn calculate_height(blocks_to_drop: u64, filename: &str) -> io::Result<u64> {
 
             if blocks_dropped > 0 && !sequence_found {
                 let mut cache_rows = [0_u8; ROW_CACHE_SIZE];
-                for i in 0..ROW_CACHE_SIZE {
+                for (i, row) in cache_rows.iter_mut().enumerate().take(ROW_CACHE_SIZE) {
                     let y = top - i as i32;
                     let mut res = 0;
                     for x in 0..ARENA_WIDTH as i32 {
                         res += if arena.contains(&(x, y)) { 1 << x } else { 0 };
                     }
-                    cache_rows[i] = res;
+                    *row = res;
                 }
 
                 let key = CaveSequenceState {
