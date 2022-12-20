@@ -113,7 +113,6 @@ fn calculate_external_sides(filename: &str) -> io::Result<i32> {
     let mut sides = 0;
     for (x, y, z) in &inverse {
         if !inverse.contains(&(x + 1, *y, *z)) {
-            println!("{d:?}", d = (x + 1, *y, *z));
             sides += 1;
         }
         if !inverse.contains(&(x - 1, *y, *z)) {
