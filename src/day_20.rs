@@ -1,15 +1,14 @@
-use std::{
-    collections::VecDeque,
-    io,
-};
+use std::{collections::VecDeque, io};
 
 use itertools::Itertools;
 
 use crate::file_utils::read_lines;
 
+const DECRYPTION_KEY: i64 = 811589153;
+
 #[derive(Copy, Clone)]
 struct Number {
-    pub value: i32,
+    pub value: i64,
     pub decrypted: bool,
 }
 
@@ -25,57 +24,42 @@ fn print_list(numbers: &VecDeque<Number>) {
     println!();
 }
 
-fn decrypt(filename: &str) -> io::Result<Vec<i32>> {
+fn decrypt(mix_amount: i32, decryption_key: i64, filename: &str) -> io::Result<Vec<i64>> {
     let mut numbers = VecDeque::new();
-    let mut stack = VecDeque::new();
 
     let lines = read_lines(filename)?;
     for line in lines.flatten() {
         if line.is_empty() {
             continue;
         }
-        let value = line.parse::<i32>().unwrap();
-        numbers.push_back(Number {
-            value,
-            decrypted: false,
-        });
-
-        stack.push_back(value);
+        let value = line.parse::<i64>().unwrap();
+        numbers.push_back(value * decryption_key);
     }
 
-    let length = numbers.len();
+    let mut results = (0..numbers.len()).collect_vec();
 
-    let mut i = 0;
-    while i < length {
-        if numbers[i].decrypted {
-            i += 1;
-            continue;
+    // heavily inspired by AxlLind's code.
+    for _ in 0..mix_amount {
+        for (i, x) in numbers.iter().enumerate() {
+            let index = results.iter().position(|&r| r == i).unwrap();
+            results.remove(index);
+            let mut new_index = index as i64 + x;
+            new_index = new_index.rem_euclid(results.len() as i64);
+
+            debug_assert!(
+                new_index >= 0 && new_index < numbers.len() as i64 + 1,
+                "{new_index}"
+            );
+
+            results.insert(new_index as usize, i as usize);
         }
-        let pulled_opt = numbers.remove(i);
-        let mut pulled = pulled_opt.unwrap();
-        let mut new_index = i as i32 + pulled.value;
-
-        while new_index <= 0 {
-            new_index += length as i32 - 1;
-        }
-
-        while new_index >= length as i32 {
-            new_index -= length as i32 - 1;
-        }
-        debug_assert!(new_index >= 0 && new_index < numbers.len() as i32 + 1, "{new_index}");
-
-        pulled.decrypted = true;
-
-        numbers.insert(new_index as usize, pulled);
     }
 
-    let result = numbers.iter().map(|n| n.value).collect_vec();
-
-    Ok(result)
+    Ok(results.iter().map(|&r| numbers[r]).collect_vec())
 }
 
-fn find_coordinates(filename: &str) -> io::Result<i32> {
-    let data = decrypt(filename)?;
+fn find_coordinates(mix_amount: i32, decryption_key: i64, filename: &str) -> io::Result<i64> {
+    let data = decrypt(mix_amount, decryption_key, filename)?;
 
     let length = data.len();
     let z_position = data.iter().position(|n| *n == 0).unwrap();
@@ -92,14 +76,14 @@ fn find_coordinates(filename: &str) -> io::Result<i32> {
     Ok(result)
 }
 
-pub fn day_20() -> io::Result<i32> {
-    let result = find_coordinates("./inputs/day-20-input.txt")?;
+pub fn day_20() -> io::Result<i64> {
+    let result = find_coordinates(1, 1, "./inputs/day-20-input.txt")?;
     Ok(result)
 }
 
-pub fn day_20_part_2() -> io::Result<i32> {
-    let result = decrypt("./inputs/day-20-input.txt")?;
-    todo!();
+pub fn day_20_part_2() -> io::Result<i64> {
+    let result = find_coordinates(10, DECRYPTION_KEY, "./inputs/day-20-input.txt")?;
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -108,22 +92,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn collection_test() {
-        let result = decrypt("./inputs/day-20-input-test.txt").unwrap();
-        let expected = vec![1, 2, -3, 4, 0, 3, -2];
-        assert_eq!(expected, result);
-    }
-
-    #[test]
     fn small_test() {
-        let result = find_coordinates("./inputs/day-20-input-test.txt").unwrap();
+        let result = find_coordinates(1, 1, "./inputs/day-20-input-test.txt").unwrap();
         assert_eq!(3, result);
     }
 
     #[test]
     fn test() {
-        let result = find_coordinates("./inputs/day-20-input.txt").unwrap();
+        let result = find_coordinates(1, 1, "./inputs/day-20-input.txt").unwrap();
         assert_eq!(2275, result);
     }
-}
 
+    #[test]
+    fn part_2_small_test() {
+        let result =
+            find_coordinates(10, DECRYPTION_KEY, "./inputs/day-20-input-test.txt").unwrap();
+        assert_eq!(1623178306, result);
+    }
+}

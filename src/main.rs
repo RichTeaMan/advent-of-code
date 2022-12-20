@@ -8,8 +8,8 @@ mod day_15;
 mod day_16;
 mod day_17;
 mod day_18;
-mod day_20;
 mod day_2;
+mod day_20;
 mod day_3;
 mod day_4;
 mod day_5;
@@ -132,4 +132,8 @@ fn main() {
         answer = day_18_part_2().unwrap()
     );
     println!("Day 20 part 1 answer: {answer}", answer = day_20().unwrap());
+    println!(
+        "Day 20 part 2 answer: {answer}",
+        answer = day_20_part_2().unwrap()
+    );
 }
