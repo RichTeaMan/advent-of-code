@@ -6,24 +6,6 @@ use crate::file_utils::read_lines;
 
 const DECRYPTION_KEY: i64 = 811589153;
 
-#[derive(Copy, Clone)]
-struct Number {
-    pub value: i64,
-    pub decrypted: bool,
-}
-
-#[allow(dead_code)]
-fn print_list(numbers: &VecDeque<Number>) {
-    for n in numbers {
-        if n.decrypted {
-            print!(" {v} , ", v = n.value);
-        } else {
-            print!("({v}), ", v = n.value);
-        }
-    }
-    println!();
-}
-
 fn decrypt(mix_amount: i32, decryption_key: i64, filename: &str) -> io::Result<Vec<i64>> {
     let mut numbers = VecDeque::new();
 
