@@ -62,15 +62,6 @@ struct State {
     pub geode_robots: i32,
 }
 
-#[derive(Debug)]
-enum RobotDecision {
-    ORE,
-    CLAY,
-    OBSIDIAN,
-    GEODE,
-    NONE,
-}
-
 impl State {
     fn time_to_given_ore(&self, desired: i32) -> i32 {
         if self.ore >= desired {
@@ -142,29 +133,6 @@ impl State {
         geodes
     }
 
-    fn message(&self) {
-        println!(
-            "{r} ore-collecting robot; you now have {m} ore.",
-            r = self.ore_robots,
-            m = self.ore
-        );
-        println!(
-            "{r} clay-collecting robots; you now have {m} clay.",
-            r = self.clay_robots,
-            m = self.clay
-        );
-        println!(
-            "{r} obsidian-collecting robots; you now have {m} obsidian.",
-            r = self.obsidian_robots,
-            m = self.obsidian
-        );
-        println!(
-            "{r} geode-cracking robots; you now have {m} geodes.",
-            r = self.geode_robots,
-            m = self.geode
-        );
-    }
-
     fn quality_level(&self) -> i32 {
         self.geode * self.blueprint_id
     }
@@ -223,9 +191,6 @@ fn calculate_quality_levels(blueprints: Vec<Blueprint>, total_time: i32) -> i32 
     let mut result = 0;
     for blueprint in blueprints {
         let best_state = simulate_blueprint(&blueprint, total_time);
-
-        print!("{best_state:?}");
-
         result += best_state.quality_level();
     }
 
@@ -248,37 +213,18 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
     let mut stack: VecDeque<State> = VecDeque::new();
     stack.push_back(start_state);
 
-    let mut counter = 0_u64;
-    let mut max_geode_culls = 0_u64;
     while let Some(mut current) = stack.pop_front() {
-        if counter % 1_000_000_000 == 0 {
-            println!(
-                "Loop {c}. {s} items in stack.",
-                c = counter,
-                s = stack.len()
-            );
-        }
-        counter += 1;
-
         debug_assert!(current.is_valid());
-
+        
         if let Some(best_state) = &best_state_opt {
             let max = current.max_geodes(total_time);
             if max == 0 || max <= best_state.geode {
-                max_geode_culls += 1;
                 continue;
             }
         }
 
-        if current.ore_robots > max_ore_bots_needed
-            || current.clay_robots > max_clay_bots_needed
-            || current.obsidian_robots > max_obs_bots_needed
-        {
-            continue;
-        }
-
         current.time += 1;
-        if current.time == total_time {
+        if current.time >= total_time {
             current.ore += current.ore_robots;
             current.clay += current.clay_robots;
             current.obsidian += current.obsidian_robots;
@@ -286,98 +232,123 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
 
             if let Some(best_state) = &best_state_opt {
                 if current.geode > best_state.geode {
-                    println!("best state on {counter}: {g}", g = current.geode);
                     best_state_opt = Some(current);
                 }
             } else {
-                println!("first best state on {counter}: {g}", g = current.geode);
                 best_state_opt = Some(current);
             }
 
             continue;
         }
 
-        let mut new_states = Vec::new();
+        let mut did_action = false;
 
         // make ore robot
-        if current.ore_robots < max_ore_bots_needed && current.ore >= blueprint.ore_robot_ore_cost {
-            let mut ore_robot_choice = current.clone();
-            ore_robot_choice.ore -= blueprint.ore_robot_ore_cost;
-            ore_robot_choice.ore_robots += 1;
-            new_states.push(ore_robot_choice);
+        if current.ore_robots > 0 && current.ore_robots < max_ore_bots_needed {
+            let wait = current.time_for_ore_bot_resources(blueprint);
+            let time = wait + current.time;
+            if time < total_time {
+                let mut ore_robot_choice = current.clone();
+
+                for _ in 0..=wait {
+                    ore_robot_choice.ore += current.ore_robots;
+                    ore_robot_choice.clay += current.clay_robots;
+                    ore_robot_choice.obsidian += current.obsidian_robots;
+                    ore_robot_choice.geode += current.geode_robots;
+                }
+
+                ore_robot_choice.ore -= blueprint.ore_robot_ore_cost;
+                ore_robot_choice.ore_robots += 1;
+                ore_robot_choice.time = time;
+
+                stack.push_front(ore_robot_choice);
+                did_action = true;
+            }
         }
 
         // make clay robot
-        if current.clay_robots < max_clay_bots_needed
-            && current.ore >= blueprint.clay_robot_ore_cost
-        {
-            let mut clay_robot_choice = current.clone();
-            clay_robot_choice.ore -= blueprint.clay_robot_ore_cost;
-            clay_robot_choice.clay_robots += 1;
-            new_states.push(clay_robot_choice);
+        if current.ore_robots > 0 && current.clay_robots < max_clay_bots_needed {
+            let wait = current.time_for_clay_bot_resources(blueprint);
+            let time = wait + current.time;
+            if time < total_time {
+                let mut clay_robot_choice = current.clone();
+
+                for _ in 0..=wait {
+                    clay_robot_choice.ore += current.ore_robots;
+                    clay_robot_choice.clay += current.clay_robots;
+                    clay_robot_choice.obsidian += current.obsidian_robots;
+                    clay_robot_choice.geode += current.geode_robots;
+                }
+
+                clay_robot_choice.ore -= blueprint.clay_robot_ore_cost;
+                clay_robot_choice.clay_robots += 1;
+                clay_robot_choice.time = time;
+
+                stack.push_front(clay_robot_choice);
+                did_action = true;
+            }
         }
 
         // make obsidian robot
-        if current.obsidian_robots < max_obs_bots_needed
-            && current.ore >= blueprint.obsidian_robot_ore_cost
-            && current.clay >= blueprint.obsidian_robot_clay_cost
-        {
-            let mut obsidian_robot_choice = current.clone();
-            obsidian_robot_choice.ore -= blueprint.obsidian_robot_ore_cost;
-            obsidian_robot_choice.clay -= blueprint.obsidian_robot_clay_cost;
-            obsidian_robot_choice.obsidian_robots += 1;
-            new_states.push(obsidian_robot_choice);
+        if current.ore_robots > 0 && current.clay_robots > 0 && current.obsidian_robots < max_obs_bots_needed {
+            let wait = current.time_for_obsidian_bot_resources(blueprint);
+            let time = wait + current.time;
+            if time < total_time {
+                let mut obsidian_robot_choice = current.clone();
+
+                for _ in 0..=wait {
+                    obsidian_robot_choice.ore += current.ore_robots;
+                    obsidian_robot_choice.clay += current.clay_robots;
+                    obsidian_robot_choice.obsidian += current.obsidian_robots;
+                    obsidian_robot_choice.geode += current.geode_robots;
+                }
+
+                obsidian_robot_choice.ore -= blueprint.obsidian_robot_ore_cost;
+                obsidian_robot_choice.clay -= blueprint.obsidian_robot_clay_cost;
+                obsidian_robot_choice.obsidian_robots += 1;
+                obsidian_robot_choice.time = time;
+
+                stack.push_front(obsidian_robot_choice);
+                did_action = true;
+            }
         }
 
         // make geode robot
-        if current.ore >= blueprint.geode_robot_ore_cost
-            && current.obsidian >= blueprint.geode_robot_obsidian_cost
+        if current.ore_robots > 0 && current.obsidian_robots > 0
         {
-            let mut geode_robot_choice = current.clone();
-            geode_robot_choice.ore -= blueprint.geode_robot_ore_cost;
-            geode_robot_choice.obsidian -= blueprint.geode_robot_obsidian_cost;
-            geode_robot_choice.geode_robots += 1;
+            let wait = current.time_for_geode_bot_resources(blueprint);
+            let time = wait + current.time;
+            if time < total_time {
+                let mut geode_robot_choice = current.clone();
 
-            // eurgh
+                for _ in 0..=wait {
+                    geode_robot_choice.ore += current.ore_robots;
+                    geode_robot_choice.clay += current.clay_robots;
+                    geode_robot_choice.obsidian += current.obsidian_robots;
+                    geode_robot_choice.geode += current.geode_robots;
+                }
 
-            geode_robot_choice.ore += current.ore_robots;
-            geode_robot_choice.clay += current.clay_robots;
-            geode_robot_choice.obsidian += current.obsidian_robots;
-            geode_robot_choice.geode += current.geode_robots;
-            stack.push_front(geode_robot_choice);
-            continue;
+                geode_robot_choice.ore -= blueprint.geode_robot_ore_cost;
+                geode_robot_choice.obsidian -= blueprint.geode_robot_obsidian_cost;
+                geode_robot_choice.geode_robots += 1;
+                geode_robot_choice.time = time;
 
-            //new_states.push(geode_robot_choice);
+                stack.push_front(geode_robot_choice);
+                did_action = true;
+            }
         }
 
-        let new_state_count = new_states.len();
-        //new_states.reverse();
-        for mut s in new_states {
-            s.ore += current.ore_robots;
-            s.clay += current.clay_robots;
-            s.obsidian += current.obsidian_robots;
-            s.geode += current.geode_robots;
-
-            stack.push_front(s);
-        }
-
-        if new_state_count != 3 {
-            current.ore += current.ore_robots;
-            current.clay += current.clay_robots;
-            current.obsidian += current.obsidian_robots;
-            current.geode += current.geode_robots;
-
-            // do nothing
-            stack.push_back(current);
+        if !did_action {
+            for _ in current.time..(total_time) {
+                current.ore += current.ore_robots;
+                current.clay += current.clay_robots;
+                current.obsidian += current.obsidian_robots;
+                current.geode += current.geode_robots;
+                current.time += 1;
+            }
+            stack.push_front(current);
         }
     }
-
-    println!(
-        "Blueprint {bid} checked {s} states. Max geode culls: {max_geode_culls}.",
-        bid = blueprint.id,
-        s = counter
-    );
-
     if let Some(best_state) = best_state_opt {
         return best_state;
     } else {
@@ -423,11 +394,6 @@ mod tests {
     fn single_blueprint_test() {
         let blueprints = load_blueprints("./inputs/day-19-input-test.txt").unwrap();
         let best_state = simulate_blueprint(&blueprints[0], PART_1_TIME);
-
-        println!("=== {t} minutes ===", t = best_state.time);
-        best_state.message();
-
-        //println!("{best_state:?}");
         assert_eq!(best_state.quality_level(), 9);
     }
 
