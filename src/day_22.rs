@@ -21,7 +21,7 @@ enum MapSection {
 enum Direction {
     LEFT,
     RIGHT,
-    NONE
+    NONE,
 }
 
 #[derive(Debug)]
@@ -171,7 +171,6 @@ fn map_puzzle(filename: &str) -> io::Result<i32> {
         };
     }
 
-
     // The final password is the sum of 1000 times the row, 4 times the column, and the facing.
     Ok(1000 * (y + 1) + 4 * (x + 1) + facing.fetch_digit())
 }
@@ -230,17 +229,11 @@ mod tests {
 
     #[test]
     fn small_test() {
-        assert_eq!(
-            map_puzzle("./inputs/day-22-input-test.txt").unwrap(),
-            6032
-        );
+        assert_eq!(map_puzzle("./inputs/day-22-input-test.txt").unwrap(), 6032);
     }
 
     #[test]
     fn test() {
-        assert_eq!(
-            map_puzzle("./inputs/day-22-input.txt").unwrap(),
-            103224
-        );
+        assert_eq!(map_puzzle("./inputs/day-22-input.txt").unwrap(), 103224);
     }
 }

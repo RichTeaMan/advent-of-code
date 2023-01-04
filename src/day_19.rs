@@ -1,13 +1,11 @@
-use std::{
-    collections::{HashSet, VecDeque},
-    default, io,
-};
+use std::{collections::VecDeque, io};
 
 use itertools::Itertools;
 
 use crate::file_utils::read_lines;
 
-const TOTAL_TIME: i32 = 24;
+const PART_1_TIME: i32 = 24;
+const PART_2_TIME: i32 = 32;
 
 struct Blueprint {
     pub id: i32,
@@ -221,10 +219,10 @@ fn load_blueprints(filename: &str) -> io::Result<Vec<Blueprint>> {
     Ok(blueprints)
 }
 
-fn calculate_quality_levels(blueprints: Vec<Blueprint>) -> i32 {
+fn calculate_quality_levels(blueprints: Vec<Blueprint>, total_time: i32) -> i32 {
     let mut result = 0;
     for blueprint in blueprints {
-        let best_state = simulate_blueprint(&blueprint);
+        let best_state = simulate_blueprint(&blueprint, total_time);
 
         print!("{best_state:?}");
 
@@ -234,145 +232,7 @@ fn calculate_quality_levels(blueprints: Vec<Blueprint>) -> i32 {
     result
 }
 
-fn heuristic(blueprint: &Blueprint, start_state: State) -> State {
-    let mut current = start_state;
-    for t in 0..TOTAL_TIME {
-        let decision = robot_decision(blueprint, &current);
-
-        match decision {
-            RobotDecision::ORE => {
-                current.ore -= blueprint.ore_robot_ore_cost;
-            }
-            RobotDecision::CLAY => {
-                current.ore -= blueprint.clay_robot_ore_cost;
-            }
-            RobotDecision::OBSIDIAN => {
-                current.ore -= blueprint.obsidian_robot_ore_cost;
-                current.clay -= blueprint.obsidian_robot_clay_cost;
-            }
-            RobotDecision::GEODE => {
-                current.ore -= blueprint.geode_robot_ore_cost;
-                current.obsidian -= blueprint.geode_robot_obsidian_cost;
-            }
-            RobotDecision::NONE => (),
-        }
-
-        assert!(current.ore >= 0);
-        assert!(current.clay >= 0);
-        assert!(current.obsidian >= 0);
-        assert!(current.geode >= 0);
-
-        current.ore += current.ore_robots;
-        current.clay += current.clay_robots;
-        current.obsidian += current.obsidian_robots;
-        current.geode += current.geode_robots;
-        current.time += 1;
-
-        match decision {
-            RobotDecision::ORE => {
-                current.ore_robots += 1;
-            }
-            RobotDecision::CLAY => {
-                current.clay_robots += 1;
-            }
-            RobotDecision::OBSIDIAN => {
-                current.obsidian_robots += 1;
-            }
-            RobotDecision::GEODE => {
-                current.geode_robots += 1;
-            }
-            RobotDecision::NONE => (),
-        }
-
-        let r = t + 1;
-        println!("Minute {r} Bulding {decision:?}.");
-        current.message();
-        println!();
-    }
-
-    current
-}
-
-fn robot_decision(blueprint: &Blueprint, state: &State) -> RobotDecision {
-    if state.time == 21 {
-        println!("debug");
-    }
-
-    // can make geode?
-    if state.ore >= blueprint.geode_robot_ore_cost
-        && state.obsidian >= blueprint.geode_robot_obsidian_cost
-    {
-        return RobotDecision::GEODE;
-    }
-
-    let time_to_geode_bot = state.time_for_geode_bot_resources(blueprint);
-    if time_to_geode_bot < i32::MAX {
-        let mut obs_state = state.clone();
-        obs_state.obsidian_robots += 1;
-        obs_state.obsidian -= blueprint.geode_robot_obsidian_cost;
-        obs_state.ore -= blueprint.geode_robot_ore_cost;
-
-        let time_to_geode_with_extra_obs = obs_state.time_for_geode_bot_resources(blueprint) + 1;
-
-        if time_to_geode_bot >= time_to_geode_with_extra_obs && obs_state.is_valid() {
-            return RobotDecision::GEODE;
-        }
-        if time_to_geode_bot == 1 {
-            return RobotDecision::NONE;
-        }
-    }
-
-    if state.ore >= blueprint.obsidian_robot_ore_cost
-        && state.clay >= blueprint.obsidian_robot_clay_cost
-    {
-        return RobotDecision::OBSIDIAN;
-    }
-
-    let time_to_obs_bot = state.time_for_obsidian_bot_resources(blueprint);
-    if time_to_obs_bot < i32::MAX {
-        let mut clay_state = state.clone();
-        clay_state.clay_robots += 1;
-        clay_state.ore -= blueprint.clay_robot_ore_cost;
-        let time_to_obs_with_extra_clay = clay_state.time_for_obsidian_bot_resources(blueprint) + 1;
-
-        let mut ore_state = state.clone();
-        ore_state.ore_robots += 1;
-        ore_state.ore -= blueprint.ore_robot_ore_cost;
-        let time_to_obs_with_extra_ore = ore_state.time_for_obsidian_bot_resources(blueprint) + 1;
-
-        let mut optimal = time_to_obs_bot;
-        let mut selection = RobotDecision::NONE;
-        if optimal >= time_to_obs_with_extra_clay && clay_state.is_valid() {
-            selection = RobotDecision::CLAY;
-            optimal = time_to_obs_with_extra_clay;
-        }
-        if optimal >= time_to_obs_with_extra_ore && ore_state.is_valid() {
-            selection = RobotDecision::ORE
-        }
-        return selection;
-    }
-
-    let time_to_clay_bot = state.time_for_clay_bot_resources(blueprint);
-    if time_to_clay_bot == 0 {
-        return RobotDecision::CLAY;
-    }
-
-    let time_to_ore_bot = state.time_for_ore_bot_resources(blueprint);
-    if time_to_ore_bot == 0 {
-        let mut ore_state = state.clone();
-        ore_state.ore_robots += 1;
-        ore_state.ore -= blueprint.ore_robot_ore_cost;
-        let time_to_clay_with_extra_ore = ore_state.time_for_ore_bot_resources(blueprint) + 1;
-
-        if time_to_clay_bot <= time_to_clay_with_extra_ore {
-            return RobotDecision::ORE;
-        }
-    }
-
-    RobotDecision::NONE
-}
-
-fn simulate_blueprint(blueprint: &Blueprint) -> State {
+fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
     let mut start_state = State {
         blueprint_id: blueprint.id,
         ..Default::default()
@@ -392,7 +252,6 @@ fn simulate_blueprint(blueprint: &Blueprint) -> State {
     let mut max_geode_culls = 0_u64;
     while let Some(mut current) = stack.pop_front() {
         if counter % 1_000_000_000 == 0 {
-            //if counter % 10000 == 0 {
             println!(
                 "Loop {c}. {s} items in stack.",
                 c = counter,
@@ -400,44 +259,32 @@ fn simulate_blueprint(blueprint: &Blueprint) -> State {
             );
         }
         counter += 1;
-        
+
         debug_assert!(current.is_valid());
-        
-        //current.debug_states.push(current.clone());
-        
-        //current.ore += current.ore_robots;
-        //current.clay += current.clay_robots;
-        //current.obsidian += current.obsidian_robots;
-        //current.geode += current.geode_robots;
-        
+
         if let Some(best_state) = &best_state_opt {
-            let max = current.max_geodes(TOTAL_TIME);
+            let max = current.max_geodes(total_time);
             if max == 0 || max <= best_state.geode {
-                max_geode_culls +=1;
-                //println!("culled");
+                max_geode_culls += 1;
                 continue;
             }
         }
-        
+
         if current.ore_robots > max_ore_bots_needed
-        || current.clay_robots > max_clay_bots_needed
-        || current.obsidian_robots > max_obs_bots_needed
+            || current.clay_robots > max_clay_bots_needed
+            || current.obsidian_robots > max_obs_bots_needed
         {
             continue;
         }
-        
-        current.time += 1;
-        if current.time == TOTAL_TIME {
 
+        current.time += 1;
+        if current.time == total_time {
             current.ore += current.ore_robots;
             current.clay += current.clay_robots;
             current.obsidian += current.obsidian_robots;
             current.geode += current.geode_robots;
 
             if let Some(best_state) = &best_state_opt {
-                //if current.ore_robots == 1 && current.clay_robots == 3 && current.obsidian_robots == 1 {
-                    //if current.obsidian_robots > best_state.obsidian_robots {
-                        //if current.clay_robots + current.ore_robots > best_state.clay_robots + best_state.ore_robots {
                 if current.geode > best_state.geode {
                     println!("best state on {counter}: {g}", g = current.geode);
                     best_state_opt = Some(current);
@@ -446,18 +293,14 @@ fn simulate_blueprint(blueprint: &Blueprint) -> State {
                 println!("first best state on {counter}: {g}", g = current.geode);
                 best_state_opt = Some(current);
             }
-            
+
             continue;
         }
 
         let mut new_states = Vec::new();
 
         // make ore robot
-        if 
-        current.ore_robots < max_ore_bots_needed 
-        && 
-        current.ore >= blueprint.ore_robot_ore_cost 
-        {
+        if current.ore_robots < max_ore_bots_needed && current.ore >= blueprint.ore_robot_ore_cost {
             let mut ore_robot_choice = current.clone();
             ore_robot_choice.ore -= blueprint.ore_robot_ore_cost;
             ore_robot_choice.ore_robots += 1;
@@ -465,11 +308,9 @@ fn simulate_blueprint(blueprint: &Blueprint) -> State {
         }
 
         // make clay robot
-        if 
-        current.clay_robots < max_clay_bots_needed 
-        &&
-        current.ore >= blueprint.clay_robot_ore_cost
-         {
+        if current.clay_robots < max_clay_bots_needed
+            && current.ore >= blueprint.clay_robot_ore_cost
+        {
             let mut clay_robot_choice = current.clone();
             clay_robot_choice.ore -= blueprint.clay_robot_ore_cost;
             clay_robot_choice.clay_robots += 1;
@@ -477,11 +318,9 @@ fn simulate_blueprint(blueprint: &Blueprint) -> State {
         }
 
         // make obsidian robot
-        if 
-        current.obsidian_robots < max_obs_bots_needed
-        && current.ore >= blueprint.obsidian_robot_ore_cost
+        if current.obsidian_robots < max_obs_bots_needed
+            && current.ore >= blueprint.obsidian_robot_ore_cost
             && current.clay >= blueprint.obsidian_robot_clay_cost
-            
         {
             let mut obsidian_robot_choice = current.clone();
             obsidian_robot_choice.ore -= blueprint.obsidian_robot_ore_cost;
@@ -499,10 +338,7 @@ fn simulate_blueprint(blueprint: &Blueprint) -> State {
             geode_robot_choice.obsidian -= blueprint.geode_robot_obsidian_cost;
             geode_robot_choice.geode_robots += 1;
 
-
-
             // eurgh
-
 
             geode_robot_choice.ore += current.ore_robots;
             geode_robot_choice.clay += current.clay_robots;
@@ -510,7 +346,6 @@ fn simulate_blueprint(blueprint: &Blueprint) -> State {
             geode_robot_choice.geode += current.geode_robots;
             stack.push_front(geode_robot_choice);
             continue;
-
 
             //new_states.push(geode_robot_choice);
         }
@@ -537,7 +372,11 @@ fn simulate_blueprint(blueprint: &Blueprint) -> State {
         }
     }
 
-    println!("Blueprint {bid} checked {s} states. Max geode culls: {max_geode_culls}.",bid = blueprint.id, s= counter);
+    println!(
+        "Blueprint {bid} checked {s} states. Max geode culls: {max_geode_culls}.",
+        bid = blueprint.id,
+        s = counter
+    );
 
     if let Some(best_state) = best_state_opt {
         return best_state;
@@ -551,12 +390,18 @@ fn simulate_blueprint(blueprint: &Blueprint) -> State {
 
 pub fn day_19() -> io::Result<i32> {
     let blueprints = load_blueprints("./inputs/day-19-input.txt")?;
-    let result = calculate_quality_levels(blueprints);
+    let result = calculate_quality_levels(blueprints, PART_1_TIME);
     Ok(result)
 }
 
 pub fn day_19_part_2() -> io::Result<i32> {
-    todo!();
+    let blueprints = load_blueprints("./inputs/day-19-input.txt")?;
+    let results = blueprints
+        .iter()
+        .take(3)
+        .map(|f| simulate_blueprint(f, PART_2_TIME).geode)
+        .collect_vec();
+    Ok(results.iter().product())
 }
 
 #[cfg(test)]
@@ -567,18 +412,17 @@ mod tests {
     #[test]
     fn max_geode_test() {
         let state = State {
-
-            time : 10,
+            time: 10,
             ..Default::default()
         };
         let max = state.max_geodes(10);
-    assert_eq!(0, max);
+        assert_eq!(0, max);
     }
 
     #[test]
     fn single_blueprint_test() {
         let blueprints = load_blueprints("./inputs/day-19-input-test.txt").unwrap();
-        let best_state = simulate_blueprint(&blueprints[0]);
+        let best_state = simulate_blueprint(&blueprints[0], PART_1_TIME);
 
         println!("=== {t} minutes ===", t = best_state.time);
         best_state.message();
@@ -590,14 +434,33 @@ mod tests {
     #[test]
     fn small_test() {
         let blueprints = load_blueprints("./inputs/day-19-input-test.txt").unwrap();
-        let result = calculate_quality_levels(blueprints);
+        let result = calculate_quality_levels(blueprints, PART_1_TIME);
         assert_eq!(result, 33);
     }
 
     #[test]
     fn test() {
         let blueprints = load_blueprints("./inputs/day-19-input.txt").unwrap();
-        let result = calculate_quality_levels(blueprints);
+        let result = calculate_quality_levels(blueprints, PART_1_TIME);
         assert_eq!(result, 1349);
+    }
+
+    #[test]
+    fn part_2_small_test() {
+        let blueprints = load_blueprints("./inputs/day-19-input-test.txt").unwrap();
+        let result = simulate_blueprint(&blueprints[0], PART_2_TIME);
+        assert_eq!(result.geode, 56);
+    }
+
+    #[test]
+    pub fn part_2_test() {
+        let blueprints = load_blueprints("./inputs/day-19-input.txt").unwrap();
+        let results = blueprints
+            .iter()
+            .take(3)
+            .map(|f| simulate_blueprint(f, PART_2_TIME).geode)
+            .collect_vec();
+        let result = results.iter().product();
+        assert_eq!(21840, result);
     }
 }
