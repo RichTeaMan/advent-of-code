@@ -13,6 +13,7 @@ mod day_2;
 mod day_20;
 mod day_21;
 mod day_22;
+mod day_23;
 mod day_3;
 mod day_4;
 mod day_5;
@@ -37,6 +38,7 @@ use crate::day_2::{day_2, day_2_part_2};
 use crate::day_20::{day_20, day_20_part_2};
 use crate::day_21::{day_21, day_21_part_2};
 use crate::day_22::{day_22, day_22_part_2};
+use crate::day_23::{day_23, day_23_part_2};
 use crate::day_3::{day_3, day_3_part_2};
 use crate::day_4::{day_4, day_4_part_2};
 use crate::day_5::{day_5, day_5_part_2};
@@ -153,4 +155,5 @@ fn main() {
         answer = day_21_part_2().unwrap()
     );
     println!("Day 22 part 1 answer: {answer}", answer = day_22().unwrap());
+    println!("Day 23 part 1 answer: {answer}", answer = day_23().unwrap());
 }
