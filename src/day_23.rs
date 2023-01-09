@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, VecDeque},
     io,
 };
 
@@ -29,7 +29,7 @@ fn load_map(filename: &str) -> io::Result<Map> {
 fn calculate_elves(steps: i32, filename: &str) -> io::Result<(i32, i32)> {
     let mut map = load_map(filename)?;
 
-    let direction_order = vec![(0, -1), (0, 1), (-1, 0), (1, 0)];
+    let mut direction_order = VecDeque::from(vec![(0, -1), (0, 1), (-1, 0), (1, 0)]);
 
     let mut steps_completed = 0;
 
@@ -41,31 +41,34 @@ fn calculate_elves(steps: i32, filename: &str) -> io::Result<(i32, i32)> {
             let mut candidate = elf.clone();
 
             // check surrounds
-            let mut surronding_elves = 0;
-            for x in elf.0 - 1..=elf.0 + 1 {
-                for y in elf.1 - 1..=elf.1 + 1 {
-                    if map.contains(&(x, y)) {
-                        surronding_elves += 1;
+            let mut surrounding_elves =
+                map.contains(&(elf.0 - 1, elf.1)) || map.contains(&(elf.0 + 1, elf.1));
+            if !surrounding_elves {
+                for x in elf.0 - 1..=elf.0 + 1 {
+                    if map.contains(&(x, elf.1 - 1)) || map.contains(&(x, elf.1 + 1)) {
+                        surrounding_elves = true;
+                        break;
                     }
                 }
             }
-            if surronding_elves > 1 {
-                for direction_i in direction_start..direction_start + direction_order.len() {
-                    let direction = direction_order[direction_i % direction_order.len()];
 
-                    let sides = if direction.0 == 0 {
-                        vec![(-1, 0), (1, 0)]
+            if surrounding_elves {
+                for direction in &direction_order {
+                    let new_position = (elf.0 + direction.0, elf.1 + direction.1);
+                    let side_1;
+                    let side_2;
+
+                    if direction.0 == 0 {
+                        side_1 = (new_position.0 - 1, new_position.1);
+                        side_2 = (new_position.0 + 1, new_position.1);
                     } else {
-                        vec![(0, -1), (0, 1)]
+                        side_1 = (new_position.0, new_position.1 - 1);
+                        side_2 = (new_position.0, new_position.1 + 1);
                     };
 
-                    let new_position = (elf.0 + direction.0, elf.1 + direction.1);
-                    let mut check_positions = vec![new_position.clone()];
-                    for s in sides {
-                        check_positions.push((new_position.0 + s.0, new_position.1 + s.1));
-                    }
-
-                    let found = check_positions.iter().any(|p| map.contains(p));
+                    let found = map.contains(&new_position)
+                        || map.contains(&side_1)
+                        || map.contains(&side_2);
 
                     if !found {
                         changes += 1;
@@ -96,6 +99,9 @@ fn calculate_elves(steps: i32, filename: &str) -> io::Result<(i32, i32)> {
         for (position_candidate, _) in position_candidates {
             map.insert(position_candidate);
         }
+
+        let f = direction_order.pop_front().unwrap();
+        direction_order.push_back(f);
     }
 
     // find smallest rectangle
