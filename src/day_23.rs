@@ -26,35 +26,17 @@ fn load_map(filename: &str) -> io::Result<Map> {
     Ok(map)
 }
 
-fn draw_map(map: &Map) {
-    // find smallest rectangle
-    let min_x = map.iter().map(|(x, _)| x).min().unwrap().to_owned();
-    let max_x = map.iter().map(|(x, _)| x).max().unwrap().to_owned();
-
-    let min_y = map.iter().map(|(_, y)| y).min().unwrap().to_owned();
-    let max_y = map.iter().map(|(_, y)| y).max().unwrap().to_owned();
-    for y in min_y..=max_y {
-        for x in min_x..=max_x {
-            if map.contains(&(x, y)) {
-                print!("#");
-            } else {
-                print!(".");
-            }
-        }
-        println!();
-    }
-    println!();
-}
-
-fn calculate_elves(steps: i32, filename: &str) -> io::Result<i32> {
+fn calculate_elves(steps: i32, filename: &str) -> io::Result<(i32, i32)> {
     let mut map = load_map(filename)?;
-
-    draw_map(&map);
 
     let direction_order = vec![(0, -1), (0, 1), (-1, 0), (1, 0)];
 
+    let mut steps_completed = 0;
+
     for direction_start in 0..(steps as usize) {
+        steps_completed += 1;
         let mut position_candidates: HashMap<(i32, i32), (i32, i32)> = HashMap::new();
+        let mut changes = 0;
         for elf in &map {
             let mut candidate = elf.clone();
 
@@ -86,6 +68,7 @@ fn calculate_elves(steps: i32, filename: &str) -> io::Result<i32> {
                     let found = check_positions.iter().any(|p| map.contains(p));
 
                     if !found {
+                        changes += 1;
                         candidate = new_position;
                         break;
                     }
@@ -93,45 +76,26 @@ fn calculate_elves(steps: i32, filename: &str) -> io::Result<i32> {
             }
 
             if let Some(existing) = position_candidates.remove(&candidate) {
-                //position_candidates.remove(candidate);
-
                 debug_assert_ne!(existing, candidate);
 
                 position_candidates.insert(existing, existing);
                 position_candidates.insert(*elf, *elf);
+                changes -= 1;
             } else {
                 position_candidates.insert(candidate, *elf);
             }
         }
 
-        println!("===== step {direction_start} summary =====");
-
-        let mut changes = 0;
-        for m in &map {
-            if !position_candidates.contains_key(&m) {
-                changes += 1;
-            }
+        if changes == 0 {
+            break;
         }
-        println!("Changes: {changes}");
+
+        debug_assert!(changes >= 0);
 
         map.clear();
         for (position_candidate, _) in position_candidates {
             map.insert(position_candidate);
         }
-
-        // find smallest rectangle
-        let min_x = map.iter().map(|(x, _)| x).min().unwrap().to_owned();
-        let max_x = map.iter().map(|(x, _)| x).max().unwrap().to_owned() + 1;
-
-        let min_y = map.iter().map(|(_, y)| y).min().unwrap().to_owned();
-        let max_y = map.iter().map(|(_, y)| y).max().unwrap().to_owned() + 1;
-
-        let width = max_x - min_x;
-        let height = max_y - min_y;
-        let empty = width * height - map.len() as i32;
-        println!(" x: {width} ({max_x} - {min_x}) y: {height} ({max_y} - {min_y}) -> {empty}");
-
-        draw_map(&map);
     }
 
     // find smallest rectangle
@@ -144,18 +108,18 @@ fn calculate_elves(steps: i32, filename: &str) -> io::Result<i32> {
     let width = max_x - min_x;
     let height = max_y - min_y;
     let empty = width * height - map.len() as i32;
-    println!(" x: {width} ({max_x} - {min_x}) y: {height} ({max_y} - {min_y}) -> {empty}");
 
-    Ok(empty)
+    Ok((empty, steps_completed))
 }
 
 pub fn day_23() -> io::Result<i32> {
-    let result = calculate_elves(10, "./inputs/day-23-input.txt")?;
+    let (result, _) = calculate_elves(10, "./inputs/day-23-input.txt")?;
     Ok(result)
 }
 
-pub fn day_23_part_2() -> io::Result<i64> {
-    todo!();
+pub fn day_23_part_2() -> io::Result<i32> {
+    let (_, steps) = calculate_elves(100_000, "./inputs/day-23-input.txt")?;
+    Ok(steps)
 }
 
 #[cfg(test)]
@@ -165,13 +129,25 @@ mod tests {
 
     #[test]
     fn small_test() {
-        let result = calculate_elves(10, "./inputs/day-23-input-test.txt").unwrap();
+        let (result, _) = calculate_elves(10, "./inputs/day-23-input-test.txt").unwrap();
         assert_eq!(110, result);
     }
 
     #[test]
     fn test() {
-        let result = calculate_elves(10, "./inputs/day-23-input.txt").unwrap();
+        let (result, _) = calculate_elves(10, "./inputs/day-23-input.txt").unwrap();
         assert_eq!(4236, result);
+    }
+
+    #[test]
+    fn part_2_small_test() {
+        let (_, steps) = calculate_elves(100, "./inputs/day-23-input-test.txt").unwrap();
+        assert_eq!(20, steps);
+    }
+
+    #[test]
+    fn part_2_test() {
+        let (_, steps) = calculate_elves(100_000, "./inputs/day-23-input.txt").unwrap();
+        assert_eq!(1023, steps);
     }
 }
