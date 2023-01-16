@@ -163,4 +163,5 @@ fn main() {
         answer = day_23_part_2().unwrap()
     );
     println!("Day 24 part 1 answer: {answer}", answer = day_24().unwrap());
+    println!("Day 24 part 2 answer: {answer}", answer = day_24_part_2().unwrap());
 }

@@ -1,12 +1,17 @@
 use std::{
     collections::{HashMap, HashSet},
-    io
+    io,
 };
 
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 use crate::file_utils::read_lines;
+
+enum Destination {
+    Beginning,
+    End,
+}
 
 #[derive(Clone, Debug, EnumIter)]
 enum Direction {
@@ -56,8 +61,14 @@ struct Map {
 }
 
 impl Map {
-    fn tick(&mut self) {
+    fn build_occupied_space(&mut self) {
         self.occupied_space.clear();
+        for blizzard in &self.blizzards {
+            self.occupied_space.insert((blizzard.x, blizzard.y));
+        }
+    }
+
+    fn tick(&mut self) {
         for blizzard in self.blizzards.iter_mut() {
             blizzard.process();
 
@@ -72,10 +83,8 @@ impl Map {
             } else if blizzard.y >= self.height {
                 blizzard.y = 0;
             }
-
-            self.occupied_space.insert((blizzard.x, blizzard.y));
         }
-
+        self.build_occupied_space();
         self.minute += 1;
     }
 
@@ -104,7 +113,6 @@ impl Map {
         println!("Minute {t}:", t = self.minute);
         for y in 0..self.height {
             for x in 0..self.width {
-
                 let mut glyph = ".".to_string();
                 if let Some((count, direction)) = taken.get(&(x, y)) {
                     if *count == 1 {
@@ -177,31 +185,40 @@ fn load_map(filename: &str) -> io::Result<Map> {
     debug_assert!(width_opt.unwrap() > 0);
     debug_assert!(height_opt.unwrap() > 0);
 
-    let map = Map {
+    let mut map = Map {
         width: width_opt.unwrap(),
         height: height_opt.unwrap(),
         minute: 0,
         blizzards,
         occupied_space: HashSet::new(),
     };
+    map.build_occupied_space();
     Ok(map)
 }
 
-fn calculate(filename: &str) -> io::Result<i32> {
+fn calculate(destination: Destination, mut map: Map) -> Map {
 
-    let mut map = load_map(filename)?;
+    let start = match destination {
+        Destination::Beginning => (map.width - 1, map.height - 1),
+        Destination::End => (0, 0),
+    };
+
+    let target = match destination {
+        Destination::Beginning => (0, 0),
+        Destination::End => (map.width - 1, map.height - 1),
+    };
 
     // player can only move down at first. wait until that option is available
-    map.tick();
-    while !map.is_free(0, 0) {
+    while !map.is_free(start.0, start.1) {
         map.tick();
     }
 
-    let mut candidates: HashSet<(i32, i32)> = HashSet::from_iter(vec![(0, 0)]);
+    let mut candidates: HashSet<(i32, i32)> = HashSet::from_iter(vec![start]);
 
-    let mut steps_needed = None;
+    let mut destination_reached = false;
 
-    while steps_needed.is_none() {
+    while !destination_reached {
+
         map.tick();
 
         if map.minute > 10_000 {
@@ -209,15 +226,17 @@ fn calculate(filename: &str) -> io::Result<i32> {
         }
 
         let mut new_candidates = HashSet::new();
+        // there is always an option to start again.
+        new_candidates.insert(start.clone());
 
         for (candidate_x, candidate_y) in &candidates {
-
             for direction in Direction::iter() {
                 let (x, y) = direction.calculate_position(*candidate_x, *candidate_y);
 
                 if map.is_free(x, y) {
-                    if x == map.width - 1 && y == map.height - 1 {
-                        steps_needed = Some(map.minute + 1);
+                    if (x, y) == target {
+                        map.tick();
+                        destination_reached = true;
                     }
                     new_candidates.insert((x, y));
                 }
@@ -226,16 +245,21 @@ fn calculate(filename: &str) -> io::Result<i32> {
         candidates = new_candidates;
     }
 
-    Ok(steps_needed.unwrap())
+    map
 }
 
 pub fn day_24() -> io::Result<i32> {
-    let result = calculate("./inputs/day-24-input.txt")?;
-    Ok(result)
+    let map = load_map("./inputs/day-24-input.txt")?;
+    let result = calculate(Destination::End, map);
+    Ok(result.minute)
 }
 
 pub fn day_24_part_2() -> io::Result<i32> {
-    todo!();
+    let map = load_map("./inputs/day-24-input.txt")?;
+    let leg_1 = calculate(Destination::End, map);
+    let leg_2 = calculate(Destination::Beginning, leg_1);
+    let leg_3 = calculate(Destination::End, leg_2);
+    Ok(leg_3.minute)
 }
 
 #[cfg(test)]
@@ -245,13 +269,44 @@ mod tests {
 
     #[test]
     fn small_test() {
-        let result = calculate("./inputs/day-24-input-test.txt").unwrap();
-        assert_eq!(18, result);
+        let map = load_map("./inputs/day-24-input-test.txt").unwrap();
+        let result = calculate(Destination::End, map);
+        assert_eq!(18, result.minute);
     }
 
     #[test]
     fn test() {
-        let result = calculate("./inputs/day-24-input.txt").unwrap();
-        assert_eq!(281, result);
+        let map = load_map("./inputs/day-24-input.txt").unwrap();
+        let result = calculate(Destination::End, map);
+        assert_eq!(281, result.minute);
+    }
+
+    #[test]
+    fn part_2_small_test() {
+        let map = load_map("./inputs/day-24-input-test.txt").unwrap();
+
+        println!("start");
+
+        let leg_1 = calculate(Destination::End, map);
+        assert_eq!(18, leg_1.minute);
+
+        println!("leg 1 done");
+
+        let leg_2 = calculate(Destination::Beginning, leg_1);
+        assert_eq!(41, leg_2.minute);
+
+        println!("leg 2 done");
+
+        let leg_3 = calculate(Destination::End, leg_2);
+        assert_eq!(54, leg_3.minute);
+    }
+
+    #[test]
+    fn part_2_test() {
+        let map = load_map("./inputs/day-24-input.txt").unwrap();
+        let leg_1 = calculate(Destination::End, map);
+        let leg_2 = calculate(Destination::Beginning, leg_1);
+        let leg_3 = calculate(Destination::End, leg_2);
+        assert_eq!(807, leg_3.minute);
     }
 }
