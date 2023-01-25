@@ -15,9 +15,11 @@ pub fn day_22() -> io::Result<i32> {
 }
 
 pub fn day_22_part_2() -> io::Result<i32> {
-    todo!();
+    let result = cube_puzzle("./inputs/day-22-input.txt")?;
+    Ok(result)
 }
 
+#[derive(PartialEq, Eq, Clone, Copy)]
 enum MapSection {
     WALL,
     FLOOR,
@@ -107,6 +109,7 @@ impl Facing {
     }
 }
 
+#[derive(Debug)]
 struct Instruction {
     pub steps: i32,
     pub direction: Direction,
@@ -123,6 +126,19 @@ impl MapGraph {
     fn connection_count(&self) -> usize {
         let count = self.faces.iter().map(|f| f.connection_count()).sum();
         count
+    }
+
+    fn fetch_face_id_at_location(&self, x: i32, y: i32) -> Option<usize> {
+        if let Some(face) = self
+            .faces
+            .iter()
+            .filter(|f| x >= f.x && x < f.x + self.size && y >= f.y && y < f.y + self.size)
+            .next()
+        {
+            Some(face.id)
+        } else {
+            None
+        }
     }
 }
 
@@ -157,6 +173,24 @@ struct CubeFaceConnection {
     orientation: Orientation,
 }
 
+#[derive(Debug)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Point {
+    fn calc_heading(direction: usize) -> Point {
+        match (direction + 4) % 4 {
+            0 => Point { x: 0, y: -1 },
+            1 => Point { x: 1, y: 0 },
+            2 => Point { x: 0, y: 1 },
+            3 => Point { x: -1, y: 0 },
+            _ => panic!("Unknown direction: {direction}"),
+        }
+    }
+}
+
 fn normal_direction(direction: usize) -> (usize, usize) {
     match direction % 4 {
         NORTH_INDEX | SOUTH_INDEX => (WEST_INDEX, EAST_INDEX),
@@ -175,10 +209,12 @@ fn load_map(filename: &str) -> io::Result<(Map, Vec<Instruction>)> {
         }
 
         if line.contains("L") || line.contains("R") {
-            let directions = line.split_inclusive(&['L', 'R']);
+            let mut hacked_line = line.clone();
+            hacked_line = hacked_line.replace("L", ",L").replace("R", ",R");
+            let directions = hacked_line.split(&[',']);
 
             for direction in directions {
-                let steps_str = direction.trim_end_matches(&['L', 'R']);
+                let steps_str = direction.trim_start_matches(&['L', 'R', 'N']);
                 let steps = steps_str.parse::<i32>().unwrap();
                 instructions.push(Instruction {
                     steps,
@@ -224,7 +260,9 @@ fn calc_3d_map_size(map: &Map) -> i32 {
     panic!("Unable to find a integer square area for map.");
 }
 
-fn build_graph(map: &Map, size: i32) -> MapGraph {
+fn build_graph(map: &Map) -> MapGraph {
+    let size = calc_3d_map_size(map);
+
     // construct faces
     let mut faces: Vec<CubeFace> = Vec::new();
     for face_row in 0..6 {
@@ -473,6 +511,12 @@ fn map_puzzle(filename: &str) -> io::Result<i32> {
     let mut facing = Facing::EAST;
 
     for instruction in instructions {
+        facing = match instruction.direction {
+            Direction::LEFT => facing.rotate_left(),
+            Direction::RIGHT => facing.rotate_right(),
+            Direction::NONE => facing,
+        };
+
         for _ in 0..instruction.steps {
             let delta = match facing {
                 Facing::NORTH => (0, -1),
@@ -511,16 +555,123 @@ fn map_puzzle(filename: &str) -> io::Result<i32> {
                 panic!("Could not fetch tile with wrapped coords {new_x}, {new_y}")
             }
         }
-
-        facing = match instruction.direction {
-            Direction::LEFT => facing.rotate_left(),
-            Direction::RIGHT => facing.rotate_right(),
-            Direction::NONE => facing,
-        };
     }
 
     // The final password is the sum of 1000 times the row, 4 times the column, and the facing.
     Ok(1000 * (y + 1) + 4 * (x + 1) + facing.fetch_digit())
+}
+
+fn cube_puzzle(file_path: &str) -> io::Result<i32> {
+    let (map, instructions) = load_map(file_path)?;
+
+    let cube = build_graph(&map);
+
+    // start location is top left face, which is always the first
+    let mut x = cube.faces[0].x;
+    let mut y = cube.faces[0].y;
+
+    println!("Starting at {x}, {y}");
+
+    let mut direction = EAST_INDEX;
+    let mut face_id = cube.faces[0].id;
+
+    for instruction in instructions {
+        println!("{instruction:?}");
+        println!("PreGoing {direction}");
+        if instruction.direction == Direction::LEFT {
+            direction = direction.wrapping_sub(1);
+        } else if instruction.direction == Direction::RIGHT {
+            direction += 1;
+        }
+        direction = direction % 4;
+        println!("Going {direction}");
+        let mut heading = Point::calc_heading(direction);
+
+        for _ in 0..instruction.steps {
+            let mut newX = x + heading.x;
+            let mut newY = y + heading.y;
+
+            let mut new_face_id = face_id;
+            let mut newDirection = direction;
+            let mut newHeading = heading;
+
+            if Some(face_id) != cube.fetch_face_id_at_location(newX, newY) {
+                println!("FACE!");
+                // just moved face. hold onto your butts
+                // FetchFaceAtLocation is not reliable until coords have been resolved
+
+                let connection = cube.faces[face_id].connections[direction].unwrap();
+                new_face_id = connection.cube_face_id;
+
+                let mut preRotX = newX - cube.faces[face_id].x;
+                let mut preRotY = newY - cube.faces[face_id].y;
+
+                match direction {
+                    NORTH_INDEX => {
+                        preRotY = cube.size - 1;
+                    }
+                    SOUTH_INDEX => {
+                        preRotY = 0;
+                    }
+                    WEST_INDEX => {
+                        preRotX = cube.size - 1;
+                    }
+                    EAST_INDEX => {
+                        preRotX = 0;
+                    }
+                    _ => panic!("Unexpected direction {direction}"),
+                }
+                debug_assert!(preRotX >= 0 && preRotX < cube.size);
+                debug_assert!(preRotY >= 0 && preRotY < cube.size);
+
+                let mut rotX = preRotX;
+                let mut rotY = preRotY;
+
+                // now do a rotation
+                // maybe plus 1
+                for _ in 0..((4 - connection.orientation.orientation_as_number()) % 4) {
+                    let tx = rotX;
+                    let ty = rotY;
+
+                    rotX = (cube.size - 1) - ty;
+                    rotY = tx;
+                }
+
+                debug_assert!(rotX >= 0 && rotX < cube.size);
+                debug_assert!(rotY >= 0 && rotY < cube.size);
+
+                newX = rotX + cube.faces[new_face_id].x;
+                newY = rotY + cube.faces[new_face_id].y;
+
+                newDirection =
+                    (direction + (4 - connection.orientation.orientation_as_number())) % 4;
+                newHeading = Point::calc_heading(newDirection);
+            }
+
+            let tile = *fetch_tile(&map, newX, newY).unwrap();
+
+            if tile == MapSection::FLOOR {
+                x = newX;
+                y = newY;
+
+                direction = newDirection;
+                heading = newHeading;
+                face_id = new_face_id;
+
+                println!("({x}, {y})    D: {direction} -> {heading:?}");
+            } else {
+                println!("Blocked at {newX}, {newY}");
+                break;
+            }
+        }
+    }
+
+    // get score
+    // convert direction to right = 0
+    let scoreDirection = direction.wrapping_sub(1) % 4;
+
+    let score = scoreDirection as i32 + (4 * (x + 1)) + (1000 * (y + 1));
+    Ok(score)
 }
 
 fn fetch_tile(map: &Map, x: i32, y: i32) -> Option<&MapSection> {
@@ -598,7 +749,7 @@ mod tests {
     fn build_graph_test() {
         let (small_map, _) = load_map("./inputs/day-22-input-test.txt").unwrap();
 
-        let graph = build_graph(&small_map, 4);
+        let graph = build_graph(&small_map);
 
         assert_eq!(4, graph.size);
         assert_eq!(6, graph.faces.len());
@@ -747,5 +898,38 @@ mod tests {
             Orientation::SAME,
             graph.faces[5].connections[3].unwrap().orientation
         );
+    }
+
+    #[test]
+    fn part_2_small_test() {
+        assert_eq!(5031, cube_puzzle("./inputs/day-22-input-test.txt").unwrap());
+    }
+
+    #[test]
+    fn part_2_test() {
+        assert_eq!(189097, cube_puzzle("./inputs/day-22-input.txt").unwrap());
+    }
+
+    #[test]
+    fn instruction_parse_test() {
+        let (_, instructions) = load_map("./inputs/day-22-input-test.txt").unwrap();
+
+        // 10R5L5R10L4R5L5
+        assert_eq!(7, instructions.len());
+        assert_eq!(10, instructions[0].steps);
+
+        assert_eq!(Direction::NONE, instructions[0].direction);
+        assert_eq!(5, instructions[1].steps);
+        assert_eq!(Direction::RIGHT, instructions[1].direction);
+        assert_eq!(5, instructions[2].steps);
+        assert_eq!(Direction::LEFT, instructions[2].direction);
+        assert_eq!(10, instructions[3].steps);
+        assert_eq!(Direction::RIGHT, instructions[3].direction);
+        assert_eq!(4, instructions[4].steps);
+        assert_eq!(Direction::LEFT, instructions[4].direction);
+        assert_eq!(5, instructions[5].steps);
+        assert_eq!(Direction::RIGHT, instructions[5].direction);
+        assert_eq!(5, instructions[6].steps);
+        assert_eq!(Direction::LEFT, instructions[6].direction);
     }
 }
