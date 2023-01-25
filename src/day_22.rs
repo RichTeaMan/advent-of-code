@@ -42,10 +42,10 @@ enum Facing {
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum Orientation {
-    SAME,
-    ONE_CLOCKWISE,
-    TWO_CLOCKWISE,
-    THREE_CLOCKWISE,
+    Same,
+    OneClockwise,
+    TwoClockwise,
+    ThreeClockwise,
 }
 
 impl Orientation {
@@ -53,21 +53,20 @@ impl Orientation {
         let combined = (self.orientation_as_number() + a.orientation_as_number()) % 4;
 
         match combined {
-            0 => Orientation::SAME,
-            1 => Orientation::ONE_CLOCKWISE,
-            2 => Orientation::TWO_CLOCKWISE,
-            3 => Orientation::THREE_CLOCKWISE,
+            0 => Orientation::Same,
+            1 => Orientation::OneClockwise,
+            2 => Orientation::TwoClockwise,
+            3 => Orientation::ThreeClockwise,
             _ => panic!("Bad orientation number: {combined}"),
         }
     }
 
     fn orientation_as_number(&self) -> usize {
         match self {
-            Orientation::SAME => 0,
-            Orientation::ONE_CLOCKWISE => 1,
-            Orientation::TWO_CLOCKWISE => 2,
-            Orientation::THREE_CLOCKWISE => 3,
-            _ => panic!("Unknown orientation"),
+            Orientation::Same => 0,
+            Orientation::OneClockwise => 1,
+            Orientation::TwoClockwise => 2,
+            Orientation::ThreeClockwise => 3,
         }
     }
 
@@ -286,13 +285,13 @@ fn build_graph(map: &Map) -> MapGraph {
                 if let Some(up_face_id) = up_face_id_opt {
                     let connection = CubeFaceConnection {
                         cube_face_id: up_face_id,
-                        orientation: Orientation::SAME,
+                        orientation: Orientation::Same,
                     };
                     face.connections[NORTH_INDEX] = Some(connection);
 
                     let partner_connection = CubeFaceConnection {
                         cube_face_id: face.id,
-                        orientation: Orientation::SAME,
+                        orientation: Orientation::Same,
                     };
                     faces[up_face_id].connections[SOUTH_INDEX] = Some(partner_connection);
                 }
@@ -300,13 +299,13 @@ fn build_graph(map: &Map) -> MapGraph {
                 if let Some(left_face_id) = left_face_id_opt {
                     let connection = CubeFaceConnection {
                         cube_face_id: left_face_id,
-                        orientation: Orientation::SAME,
+                        orientation: Orientation::Same,
                     };
                     face.connections[WEST_INDEX] = Some(connection);
 
                     let partner_connection = CubeFaceConnection {
                         cube_face_id: face.id,
-                        orientation: Orientation::SAME,
+                        orientation: Orientation::Same,
                     };
                     faces[left_face_id].connections[EAST_INDEX] = Some(partner_connection);
                 }
@@ -354,8 +353,8 @@ fn build_graph(map: &Map) -> MapGraph {
                         .unwrap()
                         .orientation;
                     let resolved_index = match linked_orientation {
-                        Orientation::TWO_CLOCKWISE => linked_orientation.resolve(direction_index),
-                        Orientation::SAME => direction_index,
+                        Orientation::TwoClockwise => linked_orientation.resolve(direction_index),
+                        Orientation::Same => direction_index,
                         _ => opposite_direction(linked_orientation.resolve(direction_index)),
                     };
 
@@ -378,7 +377,7 @@ fn build_graph(map: &Map) -> MapGraph {
                                 .connections
                                 .iter()
                                 .enumerate()
-                                .filter(|(i, c)| {
+                                .filter(|(_, c)| {
                                     c.is_some()
                                         && c.unwrap().cube_face_id == target_connection.cube_face_id
                                 })
@@ -391,7 +390,7 @@ fn build_graph(map: &Map) -> MapGraph {
                                 .connections
                                 .iter()
                                 .enumerate()
-                                .filter(|(i, c)| c.is_some() && c.unwrap().cube_face_id == via_id)
+                                .filter(|(_, c)| c.is_some() && c.unwrap().cube_face_id == via_id)
                                 .map(|(i, _)| i)
                                 .next()
                                 .unwrap();
@@ -436,18 +435,18 @@ fn build_graph(map: &Map) -> MapGraph {
                             debug_assert!(dx == -1 || dx == 1, "dx: {dx}");
                             debug_assert!(dy == -1 || dy == 1, "dy: {dy}");
 
-                            let mut orientation = Orientation::ONE_CLOCKWISE;
+                            let mut orientation = Orientation::OneClockwise;
                             if (dx == -1 && dy == 1) || (dx == 1 && dy == -1) {
-                                orientation = Orientation::THREE_CLOCKWISE;
+                                orientation = Orientation::ThreeClockwise;
                             }
 
                             if (direction_index % 2) != 0 {
                                 // is horizontal
 
-                                if orientation == Orientation::ONE_CLOCKWISE {
-                                    orientation = Orientation::THREE_CLOCKWISE;
+                                if orientation == Orientation::OneClockwise {
+                                    orientation = Orientation::ThreeClockwise;
                                 } else {
-                                    orientation = Orientation::ONE_CLOCKWISE;
+                                    orientation = Orientation::OneClockwise;
                                 }
                             }
 
@@ -588,14 +587,14 @@ fn cube_puzzle(file_path: &str) -> io::Result<i32> {
         let mut heading = Point::calc_heading(direction);
 
         for _ in 0..instruction.steps {
-            let mut newX = x + heading.x;
-            let mut newY = y + heading.y;
+            let mut new_x = x + heading.x;
+            let mut new_y = y + heading.y;
 
             let mut new_face_id = face_id;
-            let mut newDirection = direction;
-            let mut newHeading = heading;
+            let mut new_direction = direction;
+            let mut new_heading = heading;
 
-            if Some(face_id) != cube.fetch_face_id_at_location(newX, newY) {
+            if Some(face_id) != cube.fetch_face_id_at_location(new_x, new_y) {
                 println!("FACE!");
                 // just moved face. hold onto your butts
                 // FetchFaceAtLocation is not reliable until coords have been resolved
@@ -603,64 +602,64 @@ fn cube_puzzle(file_path: &str) -> io::Result<i32> {
                 let connection = cube.faces[face_id].connections[direction].unwrap();
                 new_face_id = connection.cube_face_id;
 
-                let mut preRotX = newX - cube.faces[face_id].x;
-                let mut preRotY = newY - cube.faces[face_id].y;
+                let mut pre_rot_x = new_x - cube.faces[face_id].x;
+                let mut pre_rot_y = new_y - cube.faces[face_id].y;
 
                 match direction {
                     NORTH_INDEX => {
-                        preRotY = cube.size - 1;
+                        pre_rot_y = cube.size - 1;
                     }
                     SOUTH_INDEX => {
-                        preRotY = 0;
+                        pre_rot_y = 0;
                     }
                     WEST_INDEX => {
-                        preRotX = cube.size - 1;
+                        pre_rot_x = cube.size - 1;
                     }
                     EAST_INDEX => {
-                        preRotX = 0;
+                        pre_rot_x = 0;
                     }
                     _ => panic!("Unexpected direction {direction}"),
                 }
-                debug_assert!(preRotX >= 0 && preRotX < cube.size);
-                debug_assert!(preRotY >= 0 && preRotY < cube.size);
+                debug_assert!(pre_rot_x >= 0 && pre_rot_x < cube.size);
+                debug_assert!(pre_rot_y >= 0 && pre_rot_y < cube.size);
 
-                let mut rotX = preRotX;
-                let mut rotY = preRotY;
+                let mut rot_x = pre_rot_x;
+                let mut rot_y = pre_rot_y;
 
                 // now do a rotation
                 // maybe plus 1
                 for _ in 0..((4 - connection.orientation.orientation_as_number()) % 4) {
-                    let tx = rotX;
-                    let ty = rotY;
+                    let tx = rot_x;
+                    let ty = rot_y;
 
-                    rotX = (cube.size - 1) - ty;
-                    rotY = tx;
+                    rot_x = (cube.size - 1) - ty;
+                    rot_y = tx;
                 }
 
-                debug_assert!(rotX >= 0 && rotX < cube.size);
-                debug_assert!(rotY >= 0 && rotY < cube.size);
+                debug_assert!(rot_x >= 0 && rot_x < cube.size);
+                debug_assert!(rot_y >= 0 && rot_y < cube.size);
 
-                newX = rotX + cube.faces[new_face_id].x;
-                newY = rotY + cube.faces[new_face_id].y;
+                new_x = rot_x + cube.faces[new_face_id].x;
+                new_y = rot_y + cube.faces[new_face_id].y;
 
-                newDirection =
+                new_direction =
                     (direction + (4 - connection.orientation.orientation_as_number())) % 4;
-                newHeading = Point::calc_heading(newDirection);
+                new_heading = Point::calc_heading(new_direction);
             }
 
-            let tile = *fetch_tile(&map, newX, newY).unwrap();
+            let tile = *fetch_tile(&map, new_x, new_y).unwrap();
 
             if tile == MapSection::FLOOR {
-                x = newX;
-                y = newY;
+                x = new_x;
+                y = new_y;
 
-                direction = newDirection;
-                heading = newHeading;
+                direction = new_direction;
+                heading = new_heading;
                 face_id = new_face_id;
 
                 println!("({x}, {y})    D: {direction} -> {heading:?}");
             } else {
-                println!("Blocked at {newX}, {newY}");
+                println!("Blocked at {new_x}, {new_y}");
                 break;
             }
         }
@@ -668,9 +667,8 @@ fn cube_puzzle(file_path: &str) -> io::Result<i32> {
 
     // get score
     // convert direction to right = 0
-    let scoreDirection = direction.wrapping_sub(1) % 4;
-
-    let score = scoreDirection as i32 + (4 * (x + 1)) + (1000 * (y + 1));
+    let score_direction = direction.wrapping_sub(1) % 4;
+    let score = score_direction as i32 + (4 * (x + 1)) + (1000 * (y + 1));
     Ok(score)
 }
 
@@ -760,22 +758,22 @@ mod tests {
         assert_eq!(0, graph.faces[0].y);
         assert_eq!(1, graph.faces[0].connections[0].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::TWO_CLOCKWISE,
+            Orientation::TwoClockwise,
             graph.faces[0].connections[0].unwrap().orientation
         );
         assert_eq!(5, graph.faces[0].connections[1].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::TWO_CLOCKWISE,
+            Orientation::TwoClockwise,
             graph.faces[0].connections[1].unwrap().orientation
         );
         assert_eq!(3, graph.faces[0].connections[2].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[0].connections[2].unwrap().orientation
         );
         assert_eq!(2, graph.faces[0].connections[3].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::ONE_CLOCKWISE,
+            Orientation::OneClockwise,
             graph.faces[0].connections[3].unwrap().orientation
         );
 
@@ -784,22 +782,22 @@ mod tests {
         assert_eq!(4, graph.faces[1].y);
         assert_eq!(0, graph.faces[1].connections[0].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::TWO_CLOCKWISE,
+            Orientation::TwoClockwise,
             graph.faces[1].connections[0].unwrap().orientation
         );
         assert_eq!(2, graph.faces[1].connections[1].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[1].connections[1].unwrap().orientation
         );
         assert_eq!(4, graph.faces[1].connections[2].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::TWO_CLOCKWISE,
+            Orientation::TwoClockwise,
             graph.faces[1].connections[2].unwrap().orientation
         );
         assert_eq!(5, graph.faces[1].connections[3].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::THREE_CLOCKWISE,
+            Orientation::ThreeClockwise,
             graph.faces[1].connections[3].unwrap().orientation
         );
 
@@ -808,22 +806,22 @@ mod tests {
         assert_eq!(4, graph.faces[2].y);
         assert_eq!(0, graph.faces[2].connections[0].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::THREE_CLOCKWISE,
+            Orientation::ThreeClockwise,
             graph.faces[2].connections[0].unwrap().orientation
         );
         assert_eq!(3, graph.faces[2].connections[1].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[2].connections[1].unwrap().orientation
         );
         assert_eq!(4, graph.faces[2].connections[2].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::ONE_CLOCKWISE,
+            Orientation::OneClockwise,
             graph.faces[2].connections[2].unwrap().orientation
         );
         assert_eq!(1, graph.faces[2].connections[3].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[2].connections[3].unwrap().orientation
         );
 
@@ -832,22 +830,22 @@ mod tests {
         assert_eq!(4, graph.faces[3].y);
         assert_eq!(0, graph.faces[3].connections[0].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[3].connections[0].unwrap().orientation
         );
         assert_eq!(5, graph.faces[3].connections[1].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::THREE_CLOCKWISE,
+            Orientation::ThreeClockwise,
             graph.faces[3].connections[1].unwrap().orientation
         );
         assert_eq!(4, graph.faces[3].connections[2].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[3].connections[2].unwrap().orientation
         );
         assert_eq!(2, graph.faces[3].connections[3].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[3].connections[3].unwrap().orientation
         );
 
@@ -856,22 +854,22 @@ mod tests {
         assert_eq!(8, graph.faces[4].y);
         assert_eq!(3, graph.faces[4].connections[0].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[4].connections[0].unwrap().orientation
         );
         assert_eq!(5, graph.faces[4].connections[1].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[4].connections[1].unwrap().orientation
         );
         assert_eq!(1, graph.faces[4].connections[2].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::TWO_CLOCKWISE,
+            Orientation::TwoClockwise,
             graph.faces[4].connections[2].unwrap().orientation
         );
         assert_eq!(2, graph.faces[4].connections[3].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::THREE_CLOCKWISE,
+            Orientation::ThreeClockwise,
             graph.faces[4].connections[3].unwrap().orientation
         );
 
@@ -880,22 +878,22 @@ mod tests {
         assert_eq!(8, graph.faces[5].y);
         assert_eq!(3, graph.faces[5].connections[0].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::ONE_CLOCKWISE,
+            Orientation::OneClockwise,
             graph.faces[5].connections[0].unwrap().orientation
         );
         assert_eq!(0, graph.faces[5].connections[1].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::TWO_CLOCKWISE,
+            Orientation::TwoClockwise,
             graph.faces[5].connections[1].unwrap().orientation
         );
         assert_eq!(1, graph.faces[5].connections[2].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::ONE_CLOCKWISE,
+            Orientation::OneClockwise,
             graph.faces[5].connections[2].unwrap().orientation
         );
         assert_eq!(4, graph.faces[5].connections[3].unwrap().cube_face_id);
         assert_eq!(
-            Orientation::SAME,
+            Orientation::Same,
             graph.faces[5].connections[3].unwrap().orientation
         );
     }
