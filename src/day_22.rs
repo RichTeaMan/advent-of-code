@@ -385,7 +385,6 @@ fn build_graph(map: &Map) -> MapGraph {
                                 .next()
                                 .unwrap();
 
-                            println!("Creating source connection. source {face_id} -> {via_id}");
                             let source_direction = map_graph.faces[face_id]
                                 .connections
                                 .iter()
@@ -395,10 +394,6 @@ fn build_graph(map: &Map) -> MapGraph {
                                 .next()
                                 .unwrap();
 
-                            println!(
-                                "resolving...{o:?}, {target_direction}",
-                                o = map_graph.faces[face_id].connections[linked_direction_index]
-                            );
                             let resolved_target_direction = map_graph.faces[face_id].connections
                                 [linked_direction_index]
                                 .unwrap()
@@ -408,11 +403,6 @@ fn build_graph(map: &Map) -> MapGraph {
 
                             let directions =
                                 vec![resolved_target_direction, resolved_source_direction];
-
-                            let target_id = target_connection.cube_face_id;
-                            println!("    Fetch rotation: Source ID {face_id}, Target ID {target_id}, Via ID {via_id}. TD {target_direction} RTD {resolved_target_direction} | SD {source_direction} RSD {resolved_source_direction}");
-
-                            println!("{directions:?}");
 
                             for direction in directions {
                                 match direction {
@@ -478,14 +468,6 @@ fn build_graph(map: &Map) -> MapGraph {
         }
 
         if connection_count == map_graph.connection_count() {
-            println!("{map_graph:?}");
-            println!();
-
-            for face in &map_graph.faces {
-                println!("{face:?}");
-                println!();
-            }
-
             panic!("No new connection. {connection_count}");
         }
     }
@@ -569,21 +551,16 @@ fn cube_puzzle(file_path: &str) -> io::Result<i32> {
     let mut x = cube.faces[0].x;
     let mut y = cube.faces[0].y;
 
-    println!("Starting at {x}, {y}");
-
     let mut direction = EAST_INDEX;
     let mut face_id = cube.faces[0].id;
 
     for instruction in instructions {
-        println!("{instruction:?}");
-        println!("PreGoing {direction}");
         if instruction.direction == Direction::LEFT {
             direction = direction.wrapping_sub(1);
         } else if instruction.direction == Direction::RIGHT {
             direction += 1;
         }
         direction = direction % 4;
-        println!("Going {direction}");
         let mut heading = Point::calc_heading(direction);
 
         for _ in 0..instruction.steps {
@@ -595,7 +572,6 @@ fn cube_puzzle(file_path: &str) -> io::Result<i32> {
             let mut new_heading = heading;
 
             if Some(face_id) != cube.fetch_face_id_at_location(new_x, new_y) {
-                println!("FACE!");
                 // just moved face. hold onto your butts
                 // FetchFaceAtLocation is not reliable until coords have been resolved
 
@@ -656,10 +632,7 @@ fn cube_puzzle(file_path: &str) -> io::Result<i32> {
                 direction = new_direction;
                 heading = new_heading;
                 face_id = new_face_id;
-
-                println!("({x}, {y})    D: {direction} -> {heading:?}");
             } else {
-                println!("Blocked at {new_x}, {new_y}");
                 break;
             }
         }
