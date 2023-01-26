@@ -197,7 +197,6 @@ fn load_map(filename: &str) -> io::Result<Map> {
 }
 
 fn calculate(destination: Destination, mut map: Map) -> Map {
-
     let start = match destination {
         Destination::Beginning => (map.width - 1, map.height - 1),
         Destination::End => (0, 0),
@@ -218,7 +217,6 @@ fn calculate(destination: Destination, mut map: Map) -> Map {
     let mut destination_reached = false;
 
     while !destination_reached {
-
         map.tick();
 
         if map.minute > 10_000 {

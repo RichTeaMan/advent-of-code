@@ -215,7 +215,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
 
     while let Some(mut current) = stack.pop_front() {
         debug_assert!(current.is_valid());
-        
+
         if let Some(best_state) = &best_state_opt {
             let max = current.max_geodes(total_time);
             if max == 0 || max <= best_state.geode {
@@ -290,7 +290,10 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
         }
 
         // make obsidian robot
-        if current.ore_robots > 0 && current.clay_robots > 0 && current.obsidian_robots < max_obs_bots_needed {
+        if current.ore_robots > 0
+            && current.clay_robots > 0
+            && current.obsidian_robots < max_obs_bots_needed
+        {
             let wait = current.time_for_obsidian_bot_resources(blueprint);
             let time = wait + current.time;
             if time < total_time {
@@ -314,8 +317,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
         }
 
         // make geode robot
-        if current.ore_robots > 0 && current.obsidian_robots > 0
-        {
+        if current.ore_robots > 0 && current.obsidian_robots > 0 {
             let wait = current.time_for_geode_bot_resources(blueprint);
             let time = wait + current.time;
             if time < total_time {
