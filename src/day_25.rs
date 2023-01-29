@@ -26,7 +26,7 @@ fn max_value_from_place(place: usize) -> i64 {
 
 fn convert_to_snafu(decimal: i64) -> String {
     let snafu = snafu_target(decimal, 20_usize);
-    let snafu = snafu.trim_start_matches(&['0']).to_string();
+    let snafu = snafu.trim_start_matches(['0']).to_string();
 
     let dec = convert_snafu(snafu.as_str());
     if dec != decimal {

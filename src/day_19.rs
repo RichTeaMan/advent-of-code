@@ -126,11 +126,11 @@ impl State {
      */
     fn max_geodes(&self, total_time: i32) -> i32 {
         let remaining = total_time - self.time;
-        let geodes = (((remaining - 1) * (remaining + 0)) / 2)
-            + (remaining * self.geode_robots)
-            + self.geode;
+        
 
-        geodes
+        (((remaining - 1) * remaining) / 2)
+            + (remaining * self.geode_robots)
+            + self.geode
     }
 
     fn add_resources(&mut self, times: i32) {
@@ -255,7 +255,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
             let wait = current.time_for_ore_bot_resources(blueprint);
             let time = wait + current.time;
             if time < total_time {
-                let mut ore_robot_choice = current.clone();
+                let mut ore_robot_choice = current;
 
                 ore_robot_choice.add_resources(wait + 1);
 
@@ -273,7 +273,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
             let wait = current.time_for_clay_bot_resources(blueprint);
             let time = wait + current.time;
             if time < total_time {
-                let mut clay_robot_choice = current.clone();
+                let mut clay_robot_choice = current;
 
                 clay_robot_choice.add_resources(wait + 1);
 
@@ -294,7 +294,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
             let wait = current.time_for_obsidian_bot_resources(blueprint);
             let time = wait + current.time;
             if time < total_time {
-                let mut obsidian_robot_choice = current.clone();
+                let mut obsidian_robot_choice = current;
 
                 obsidian_robot_choice.add_resources(wait + 1);
 
@@ -313,7 +313,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
             let wait = current.time_for_geode_bot_resources(blueprint);
             let time = wait + current.time;
             if time < total_time {
-                let mut geode_robot_choice = current.clone();
+                let mut geode_robot_choice = current;
 
                 geode_robot_choice.add_resources(wait + 1);
 
@@ -339,7 +339,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
         }
     }
     if let Some(best_state) = best_state_opt {
-        return best_state;
+        best_state
     } else {
         panic!(
             "A solution was not found for blueprint {bid}.",

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io};
+use std::{cmp::Ordering, collections::HashMap, io};
 
 use crate::file_utils::read_lines;
 
@@ -21,23 +21,23 @@ pub fn day_22_part_2() -> io::Result<i32> {
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum MapSection {
-    WALL,
-    FLOOR,
+    Wall,
+    Floor,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Direction {
-    LEFT,
-    RIGHT,
-    NONE,
+    Left,
+    Right,
+    None,
 }
 
 #[derive(Debug)]
 enum Facing {
-    NORTH,
-    EAST,
-    SOUTH,
-    WEST,
+    North,
+    East,
+    South,
+    West,
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -82,28 +82,28 @@ fn opposite_direction(direction: usize) -> usize {
 impl Facing {
     fn rotate_left(&self) -> Facing {
         match self {
-            Facing::NORTH => Facing::WEST,
-            Facing::EAST => Facing::NORTH,
-            Facing::SOUTH => Facing::EAST,
-            Facing::WEST => Facing::SOUTH,
+            Facing::North => Facing::West,
+            Facing::East => Facing::North,
+            Facing::South => Facing::East,
+            Facing::West => Facing::South,
         }
     }
 
     fn rotate_right(&self) -> Facing {
         match self {
-            Facing::NORTH => Facing::EAST,
-            Facing::EAST => Facing::SOUTH,
-            Facing::SOUTH => Facing::WEST,
-            Facing::WEST => Facing::NORTH,
+            Facing::North => Facing::East,
+            Facing::East => Facing::South,
+            Facing::South => Facing::West,
+            Facing::West => Facing::North,
         }
     }
 
     fn fetch_digit(&self) -> i32 {
         match self {
-            Facing::NORTH => 3,
-            Facing::EAST => 0,
-            Facing::SOUTH => 1,
-            Facing::WEST => 2,
+            Facing::North => 3,
+            Facing::East => 0,
+            Facing::South => 1,
+            Facing::West => 2,
         }
     }
 }
@@ -128,16 +128,10 @@ impl MapGraph {
     }
 
     fn fetch_face_id_at_location(&self, x: i32, y: i32) -> Option<usize> {
-        if let Some(face) = self
-            .faces
+        self.faces
             .iter()
-            .filter(|f| x >= f.x && x < f.x + self.size && y >= f.y && y < f.y + self.size)
-            .next()
-        {
-            Some(face.id)
-        } else {
-            None
-        }
+            .find(|f| x >= f.x && x < f.x + self.size && y >= f.y && y < f.y + self.size)
+            .map(|face| face.id)
     }
 }
 
@@ -207,22 +201,22 @@ fn load_map(filename: &str) -> io::Result<(Map, Vec<Instruction>)> {
             continue;
         }
 
-        if line.contains("L") || line.contains("R") {
+        if line.contains('L') || line.contains('R') {
             let mut hacked_line = line.clone();
-            hacked_line = hacked_line.replace("L", ",L").replace("R", ",R");
+            hacked_line = hacked_line.replace('L', ",L").replace('R', ",R");
             let directions = hacked_line.split(&[',']);
 
             for direction in directions {
-                let steps_str = direction.trim_start_matches(&['L', 'R', 'N']);
+                let steps_str = direction.trim_start_matches(['L', 'R', 'N']);
                 let steps = steps_str.parse::<i32>().unwrap();
                 instructions.push(Instruction {
                     steps,
                     direction: if direction.contains('L') {
-                        Direction::LEFT
+                        Direction::Left
                     } else if direction.contains('R') {
-                        Direction::RIGHT
+                        Direction::Right
                     } else {
-                        Direction::NONE
+                        Direction::None
                     },
                 });
             }
@@ -233,8 +227,8 @@ fn load_map(filename: &str) -> io::Result<(Map, Vec<Instruction>)> {
         for (x, c) in line.chars().enumerate() {
             let section_opt = match c {
                 ' ' => None,
-                '.' => Some(MapSection::FLOOR),
-                '#' => Some(MapSection::WALL),
+                '.' => Some(MapSection::Floor),
+                '#' => Some(MapSection::Wall),
                 other => panic!("Unknown input {other}"),
             };
             if let Some(section) = section_opt {
@@ -489,45 +483,45 @@ fn map_puzzle(filename: &str) -> io::Result<i32> {
         .unwrap()
         .to_owned();
     let mut y = 0;
-    let mut facing = Facing::EAST;
+    let mut facing = Facing::East;
 
     for instruction in instructions {
         facing = match instruction.direction {
-            Direction::LEFT => facing.rotate_left(),
-            Direction::RIGHT => facing.rotate_right(),
-            Direction::NONE => facing,
+            Direction::Left => facing.rotate_left(),
+            Direction::Right => facing.rotate_right(),
+            Direction::None => facing,
         };
 
         for _ in 0..instruction.steps {
             let delta = match facing {
-                Facing::NORTH => (0, -1),
-                Facing::EAST => (1, 0),
-                Facing::SOUTH => (0, 1),
-                Facing::WEST => (-1, 0),
+                Facing::North => (0, -1),
+                Facing::East => (1, 0),
+                Facing::South => (0, 1),
+                Facing::West => (-1, 0),
             };
             let mut new_x = x + delta.0;
             let mut new_y = y + delta.1;
 
             // do a wrap around
             if fetch_tile(&map, new_x, new_y).is_none() {
-                if delta.0 < 0 {
-                    new_x = max_x(&map, new_y);
-                } else if delta.0 > 0 {
-                    new_x = min_x(&map, new_y);
-                }
-                if delta.1 < 0 {
-                    new_y = max_y(&map, new_x);
-                } else if delta.1 > 0 {
-                    new_y = min_y(&map, new_x);
-                }
+                new_x = match delta.0.cmp(&0) {
+                    Ordering::Greater => min_x(&map, new_y),
+                    Ordering::Less => max_x(&map, new_y),
+                    Ordering::Equal => new_x,
+                };
+                new_y = match delta.1.cmp(&0) {
+                    Ordering::Greater => min_y(&map, new_x),
+                    Ordering::Less => max_y(&map, new_x),
+                    Ordering::Equal => new_y,
+                };
             }
 
             if let Some(tile) = fetch_tile(&map, new_x, new_y) {
                 match tile {
-                    MapSection::WALL => {
+                    MapSection::Wall => {
                         break;
                     }
-                    MapSection::FLOOR => {
+                    MapSection::Floor => {
                         x = new_x;
                         y = new_y;
                     }
@@ -555,12 +549,12 @@ fn cube_puzzle(file_path: &str) -> io::Result<i32> {
     let mut face_id = cube.faces[0].id;
 
     for instruction in instructions {
-        if instruction.direction == Direction::LEFT {
+        if instruction.direction == Direction::Left {
             direction = direction.wrapping_sub(1);
-        } else if instruction.direction == Direction::RIGHT {
+        } else if instruction.direction == Direction::Right {
             direction += 1;
         }
-        direction = direction % 4;
+        direction %= 4;
         let mut heading = Point::calc_heading(direction);
 
         for _ in 0..instruction.steps {
@@ -625,7 +619,7 @@ fn cube_puzzle(file_path: &str) -> io::Result<i32> {
 
             let tile = *fetch_tile(&map, new_x, new_y).unwrap();
 
-            if tile == MapSection::FLOOR {
+            if tile == MapSection::Floor {
                 x = new_x;
                 y = new_y;
 
@@ -889,18 +883,18 @@ mod tests {
         assert_eq!(7, instructions.len());
         assert_eq!(10, instructions[0].steps);
 
-        assert_eq!(Direction::NONE, instructions[0].direction);
+        assert_eq!(Direction::None, instructions[0].direction);
         assert_eq!(5, instructions[1].steps);
-        assert_eq!(Direction::RIGHT, instructions[1].direction);
+        assert_eq!(Direction::Right, instructions[1].direction);
         assert_eq!(5, instructions[2].steps);
-        assert_eq!(Direction::LEFT, instructions[2].direction);
+        assert_eq!(Direction::Left, instructions[2].direction);
         assert_eq!(10, instructions[3].steps);
-        assert_eq!(Direction::RIGHT, instructions[3].direction);
+        assert_eq!(Direction::Right, instructions[3].direction);
         assert_eq!(4, instructions[4].steps);
-        assert_eq!(Direction::LEFT, instructions[4].direction);
+        assert_eq!(Direction::Left, instructions[4].direction);
         assert_eq!(5, instructions[5].steps);
-        assert_eq!(Direction::RIGHT, instructions[5].direction);
+        assert_eq!(Direction::Right, instructions[5].direction);
         assert_eq!(5, instructions[6].steps);
-        assert_eq!(Direction::LEFT, instructions[6].direction);
+        assert_eq!(Direction::Left, instructions[6].direction);
     }
 }

@@ -225,7 +225,7 @@ fn calculate(destination: Destination, mut map: Map) -> Map {
 
         let mut new_candidates = HashSet::new();
         // there is always an option to start again.
-        new_candidates.insert(start.clone());
+        new_candidates.insert(start);
 
         for (candidate_x, candidate_y) in &candidates {
             for direction in Direction::iter() {

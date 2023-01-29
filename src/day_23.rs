@@ -38,7 +38,7 @@ fn calculate_elves(steps: i32, filename: &str) -> io::Result<(i32, i32)> {
         let mut position_candidates: HashMap<(i32, i32), (i32, i32)> = HashMap::new();
         let mut changes = 0;
         for elf in &map {
-            let mut candidate = elf.clone();
+            let mut candidate = *elf;
 
             // check surrounds
             let mut surrounding_elves =
