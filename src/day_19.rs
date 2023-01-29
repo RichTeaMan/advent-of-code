@@ -133,6 +133,17 @@ impl State {
         geodes
     }
 
+    fn add_resources(&mut self, times: i32) {
+        for _ in 0..times {
+            self.ore += self.ore_robots;
+            self.clay += self.clay_robots;
+            self.obsidian += self.obsidian_robots;
+            self.geode += self.geode_robots;
+
+            self.time += 1;
+        }
+    }
+
     fn quality_level(&self) -> i32 {
         self.geode * self.blueprint_id
     }
@@ -225,11 +236,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
 
         current.time += 1;
         if current.time >= total_time {
-            current.ore += current.ore_robots;
-            current.clay += current.clay_robots;
-            current.obsidian += current.obsidian_robots;
-            current.geode += current.geode_robots;
-
+            current.add_resources(1);
             if let Some(best_state) = &best_state_opt {
                 if current.geode > best_state.geode {
                     best_state_opt = Some(current);
@@ -250,12 +257,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
             if time < total_time {
                 let mut ore_robot_choice = current.clone();
 
-                for _ in 0..=wait {
-                    ore_robot_choice.ore += current.ore_robots;
-                    ore_robot_choice.clay += current.clay_robots;
-                    ore_robot_choice.obsidian += current.obsidian_robots;
-                    ore_robot_choice.geode += current.geode_robots;
-                }
+                ore_robot_choice.add_resources(wait + 1);
 
                 ore_robot_choice.ore -= blueprint.ore_robot_ore_cost;
                 ore_robot_choice.ore_robots += 1;
@@ -273,12 +275,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
             if time < total_time {
                 let mut clay_robot_choice = current.clone();
 
-                for _ in 0..=wait {
-                    clay_robot_choice.ore += current.ore_robots;
-                    clay_robot_choice.clay += current.clay_robots;
-                    clay_robot_choice.obsidian += current.obsidian_robots;
-                    clay_robot_choice.geode += current.geode_robots;
-                }
+                clay_robot_choice.add_resources(wait + 1);
 
                 clay_robot_choice.ore -= blueprint.clay_robot_ore_cost;
                 clay_robot_choice.clay_robots += 1;
@@ -299,12 +296,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
             if time < total_time {
                 let mut obsidian_robot_choice = current.clone();
 
-                for _ in 0..=wait {
-                    obsidian_robot_choice.ore += current.ore_robots;
-                    obsidian_robot_choice.clay += current.clay_robots;
-                    obsidian_robot_choice.obsidian += current.obsidian_robots;
-                    obsidian_robot_choice.geode += current.geode_robots;
-                }
+                obsidian_robot_choice.add_resources(wait + 1);
 
                 obsidian_robot_choice.ore -= blueprint.obsidian_robot_ore_cost;
                 obsidian_robot_choice.clay -= blueprint.obsidian_robot_clay_cost;
@@ -323,12 +315,7 @@ fn simulate_blueprint(blueprint: &Blueprint, total_time: i32) -> State {
             if time < total_time {
                 let mut geode_robot_choice = current.clone();
 
-                for _ in 0..=wait {
-                    geode_robot_choice.ore += current.ore_robots;
-                    geode_robot_choice.clay += current.clay_robots;
-                    geode_robot_choice.obsidian += current.obsidian_robots;
-                    geode_robot_choice.geode += current.geode_robots;
-                }
+                geode_robot_choice.add_resources(wait + 1);
 
                 geode_robot_choice.ore -= blueprint.geode_robot_ore_cost;
                 geode_robot_choice.obsidian -= blueprint.geode_robot_obsidian_cost;
