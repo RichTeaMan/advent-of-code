@@ -33,7 +33,7 @@ fn calculate_elves(steps: i32, filename: &str) -> io::Result<(i32, i32)> {
 
     let mut steps_completed = 0;
 
-    for direction_start in 0..(steps as usize) {
+    for _ in 0..(steps as usize) {
         steps_completed += 1;
         let mut position_candidates: HashMap<(i32, i32), (i32, i32)> = HashMap::new();
         let mut changes = 0;
