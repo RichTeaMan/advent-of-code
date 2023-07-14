@@ -165,12 +165,9 @@ mod tests {
     fn part_2_small_test() {
         assert_eq!(calc_gas("./inputs/day-3-input-test.txt").unwrap(), 230);
     }
-    //
-    //#[test]
-    //fn part_2_test() {
-    //    assert_eq!(
-    //        calc_position_with_aim("./inputs/day-3-input.txt").unwrap(),
-    //        2101031224
-    //    );
-    //}
+
+    #[test]
+    fn part_2_test() {
+        assert_eq!(calc_gas("./inputs/day-3-input.txt").unwrap(), 3385170);
+    }
 }
