@@ -49,18 +49,13 @@ fn determine_winning_board(filename: &str) -> io::Result<i32> {
         }
 
         if board_count == 0 {
-            calls.extend(
-                line.split(',')
-                    .into_iter()
-                    .map(|v| v.parse::<i32>().unwrap()),
-            );
+            calls.extend(line.split(',').map(|v| v.parse::<i32>().unwrap()));
             continue;
         }
 
         let board_line = BoardLine {
             line: line
                 .split(' ')
-                .into_iter()
                 .filter(|v| !v.is_empty())
                 .map(|v| v.trim().parse::<i32>().unwrap())
                 .collect(),
@@ -77,7 +72,7 @@ fn determine_winning_board(filename: &str) -> io::Result<i32> {
             if let Some(found_index) = found {
                 board_line.line.remove(found_index);
 
-                if board_line.line.len() == 0 {
+                if board_line.line.is_empty() {
                     winning_board = Some((board_line.board_id, call));
                     break 'call_loop;
                 }
@@ -129,18 +124,13 @@ fn determine_losing_board(filename: &str) -> io::Result<i32> {
         }
 
         if board_count == 0 {
-            calls.extend(
-                line.split(',')
-                    .into_iter()
-                    .map(|v| v.parse::<i32>().unwrap()),
-            );
+            calls.extend(line.split(',').map(|v| v.parse::<i32>().unwrap()));
             continue;
         }
 
         let board_line = BoardLine {
             line: line
                 .split(' ')
-                .into_iter()
                 .filter(|v| !v.is_empty())
                 .map(|v| v.trim().parse::<i32>().unwrap())
                 .collect(),
@@ -163,7 +153,7 @@ fn determine_losing_board(filename: &str) -> io::Result<i32> {
             if let Some(found_index) = found {
                 board_line.line.remove(found_index);
 
-                if board_line.line.len() == 0 {
+                if board_line.line.is_empty() {
                     let found_board_id = board_ids.iter().position(|p| p == &board_line.board_id);
                     if let Some(found_board_index) = found_board_id {
                         board_ids.remove(found_board_index);
@@ -219,12 +209,12 @@ mod tests {
             1924
         );
     }
-    //
-    //#[test]
-    //fn part_2_test() {
-    //    assert_eq!(
-    //        calc_position_with_aim("./inputs/day-3-input.txt").unwrap(),
-    //        2101031224
-    //    );
-    //}
+
+    #[test]
+    fn part_2_test() {
+        assert_eq!(
+            determine_losing_board("./inputs/day-4-input.txt").unwrap(),
+            23042
+        );
+    }
 }
