@@ -35,29 +35,14 @@ fn load_map(filename: &str) -> io::Result<HashMap<(i32, i32), i32>> {
 fn find_risk_of_lowpoint(filename: &str) -> io::Result<i32> {
     let map = load_map(filename)?;
     let mut risk = 0;
-    for ((x, y), height) in &map {
-        // up
-        if let Some(neighbour_height) = map.get(&(*x, y - 1)) {
-            if neighbour_height <= height {
-                continue;
-            }
-        }
-        // down
-        if let Some(neighbour_height) = map.get(&(*x, y + 1)) {
-            if neighbour_height <= height {
-                continue;
-            }
-        }
-        // left
-        if let Some(neighbour_height) = map.get(&(x - 1, *y)) {
-            if neighbour_height <= height {
-                continue;
-            }
-        }
-        // right
-        if let Some(neighbour_height) = map.get(&(x + 1, *y)) {
-            if neighbour_height <= height {
-                continue;
+    'outer: for ((x, y), height) in &map {
+        let adjacent: Vec<(i32, i32)> = vec![(x - 1, *y), (x + 1, *y), (*x, y - 1), (*x, y + 1)];
+
+        for (adj_x, adj_y) in adjacent {
+            if let Some(neighbour_height) = map.get(&(adj_x, adj_y)) {
+                if neighbour_height <= height {
+                    continue 'outer;
+                }
             }
         }
         risk += height + 1;
@@ -68,29 +53,14 @@ fn find_risk_of_lowpoint(filename: &str) -> io::Result<i32> {
 fn find_basins(filename: &str) -> io::Result<i32> {
     let map = load_map(filename)?;
     let mut lowpoints = Vec::new();
-    for ((x, y), height) in &map {
-        // up
-        if let Some(neighbour_height) = map.get(&(*x, y - 1)) {
-            if neighbour_height <= height {
-                continue;
-            }
-        }
-        // down
-        if let Some(neighbour_height) = map.get(&(*x, y + 1)) {
-            if neighbour_height <= height {
-                continue;
-            }
-        }
-        // left
-        if let Some(neighbour_height) = map.get(&(x - 1, *y)) {
-            if neighbour_height <= height {
-                continue;
-            }
-        }
-        // right
-        if let Some(neighbour_height) = map.get(&(x + 1, *y)) {
-            if neighbour_height <= height {
-                continue;
+    'outer: for ((x, y), height) in &map {
+        let adjacent: Vec<(i32, i32)> = vec![(x - 1, *y), (x + 1, *y), (*x, y - 1), (*x, y + 1)];
+
+        for (adj_x, adj_y) in adjacent {
+            if let Some(neighbour_height) = map.get(&(adj_x, adj_y)) {
+                if neighbour_height <= height {
+                    continue 'outer;
+                }
             }
         }
         lowpoints.push((x.to_owned(), y.to_owned()));
