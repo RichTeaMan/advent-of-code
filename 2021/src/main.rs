@@ -3,6 +3,7 @@ mod day_2;
 mod day_3;
 mod day_4;
 mod day_5;
+mod day_6;
 mod file_utils;
 
 use crate::day_1::{day_1, day_1_part_2};
@@ -10,6 +11,7 @@ use crate::day_2::{day_2, day_2_part_2};
 use crate::day_3::{day_3, day_3_part_2};
 use crate::day_4::{day_4, day_4_part_2};
 use crate::day_5::{day_5, day_5_part_2};
+use crate::day_6::{day_6, day_6_part_2};
 
 fn main() {
     println!("Advent of Code 2021: https://adventofcode.com/2021");
@@ -39,5 +41,10 @@ fn main() {
     println!(
         "Day 5 part 2 answer: {answer}",
         answer = day_5_part_2().unwrap()
+    );
+    println!("Day 6 part 1 answer: {answer}", answer = day_6().unwrap());
+    println!(
+        "Day 6 part 2 answer: {answer}",
+        answer = day_6_part_2().unwrap()
     );
 }
