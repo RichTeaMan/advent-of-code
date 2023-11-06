@@ -166,12 +166,12 @@ fn load_displays(filename: &str) -> io::Result<Vec<DisplayEntry>> {
             signal_patterns: signal_pattern_str
                 .split(' ')
                 .map(|s| s.to_owned())
-                .filter(|s| s.len() > 0)
+                .filter(|s| !s.is_empty())
                 .collect_vec(),
             output_values: output_str
                 .split(' ')
                 .map(|s| s.to_owned())
-                .filter(|s| s.len() > 0)
+                .filter(|s| !s.is_empty())
                 .collect_vec(),
         });
     }
@@ -183,10 +183,10 @@ fn load_displays(filename: &str) -> io::Result<Vec<DisplayEntry>> {
  */
 fn find_unique_numbers(displays: &Vec<DisplayEntry>) -> i32 {
     let unique_segments = HashSet::from([
-        2 as usize, // 1 digit
-        4 as usize, // 4 digit
-        3 as usize, // 7 digit
-        7 as usize, // 8 digit
+        2_usize, // 1 digit
+        4_usize, // 4 digit
+        3_usize, // 7 digit
+        7_usize, // 8 digit
     ]);
 
     let mut count = 0;
@@ -206,7 +206,7 @@ fn load_find_unique_numbers(filename: &str) -> io::Result<i32> {
 }
 
 fn solve_pattern(display_entry: &DisplayEntry) -> SegmentDisplay {
-    let segments_by_count = collect_segments_by_count(&display_entry);
+    let segments_by_count = collect_segments_by_count(display_entry);
 
     let one_pattern = display_entry
         .signal_patterns
@@ -322,7 +322,7 @@ fn solve_displays(filename: &str) -> io::Result<i32> {
         let segment = solve_pattern(&display);
         let mut answer = 0;
         for output in &display.output_values {
-            answer = answer * 10;
+            answer *= 10;
             let digit = segment.calc_number(output);
             answer += digit;
         }

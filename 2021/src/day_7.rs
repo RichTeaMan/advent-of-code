@@ -57,7 +57,7 @@ fn calc_triangle_fuel(positions: Vec<i32>) -> Vec<i32> {
     for pos in 0..=max {
         let mut fuel = 0;
         for sub in &positions {
-            let diff = (pos - sub).abs() as usize;
+            let diff = (pos - sub).unsigned_abs() as usize;
             fuel += triangle_nums.get(diff).unwrap();
         }
         fuels.push(fuel);
