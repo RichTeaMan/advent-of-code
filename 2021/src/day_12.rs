@@ -59,16 +59,20 @@ fn load_map(filename: &str) -> io::Result<HashMap<String, Vec<String>>> {
 
         let (a, b) = line.split('-').map(|s| s.trim()).collect_tuple().unwrap();
 
-        if let Some(a_vec) = map.get_mut(a) {
-            a_vec.push(b.to_string());
-        } else {
-            map.insert(a.to_string(), vec![b.to_string()]);
+        if b != START {
+            if let Some(a_vec) = map.get_mut(a) {
+                a_vec.push(b.to_string());
+            } else {
+                map.insert(a.to_string(), vec![b.to_string()]);
+            }
         }
 
-        if let Some(b_vec) = map.get_mut(b) {
-            b_vec.push(a.to_string());
-        } else {
-            map.insert(b.to_string(), vec![a.to_string()]);
+        if a != START {
+            if let Some(b_vec) = map.get_mut(b) {
+                b_vec.push(a.to_string());
+            } else {
+                map.insert(b.to_string(), vec![a.to_string()]);
+            }
         }
     }
     Ok(map)
@@ -133,9 +137,6 @@ fn find_paths_with_repeat(filename: &str) -> io::Result<i32> {
         let children = map.get(&node.name).unwrap();
         let has_repeated = fetch_has_repeated(node.clone());
         for child in children {
-            if *child == *START {
-                continue;
-            }
             let mut repeat = false;
             // check if small cave has already been visited
             if is_small(child.to_string()) && has_visited(node.clone(), child) {
