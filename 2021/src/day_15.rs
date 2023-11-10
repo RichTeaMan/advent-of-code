@@ -1,12 +1,35 @@
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::{BinaryHeap, HashMap, HashSet},
     io::{self},
 };
 
 use crate::file_utils::read_lines;
-struct Visited {
+
+#[derive(Debug, PartialEq, Eq)]
+struct DjNode {
     coord: (i32, i32),
-    total_risk: i32,
+    total_cost: i32,
+}
+
+impl Default for DjNode {
+    fn default() -> Self {
+        Self {
+            coord: (0, 0),
+            total_cost: i32::MAX,
+        }
+    }
+}
+
+impl Ord for DjNode {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other.total_cost.cmp(&self.total_cost)
+    }
+}
+
+impl PartialOrd for DjNode {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 pub fn day_15() -> io::Result<i32> {
@@ -104,50 +127,45 @@ fn find_low_risk_of_map(map: HashMap<(i32, i32), i32>) -> i32 {
     let end_y = map.keys().map(|(_, y)| y).max().unwrap().to_owned();
     let end = (end_x, end_y);
 
-    let mut min_risk = i32::MAX;
+    let mut unvisited = HashSet::new();
+    for c in map.keys() {
+        unvisited.insert(*c);
+    }
 
-    let mut to_visit: VecDeque<Visited> = VecDeque::new();
-    to_visit.push_front(Visited {
+    let mut heap: BinaryHeap<DjNode> = BinaryHeap::new();
+    heap.push(DjNode {
         coord: (0, 0),
-        total_risk: 0,
+        total_cost: 0,
     });
 
-    let mut visited_with_risk: HashMap<(i32, i32), i32> = HashMap::new();
-
-    while let Some(current) = to_visit.pop_front() {
-        if current.total_risk >= min_risk {
-            continue;
-        }
+    while let Some(current) = heap.pop() {
+        let (x, y) = current.coord;
+        let current_risk = current.total_cost;
 
         if current.coord == end {
-            min_risk = current.total_risk;
+            return current_risk;
+        }
+
+        if !unvisited.contains(&current.coord) {
             continue;
         }
 
-        if let Some(prev_risk) = visited_with_risk.get_mut(&current.coord) {
-            if *prev_risk > current.total_risk {
-                *prev_risk = current.total_risk;
-            } else {
-                continue;
-            }
-        } else {
-            visited_with_risk.insert(current.coord, current.total_risk);
-        }
-
-        let (x, y) = current.coord;
+        debug_assert!(current_risk != i32::MAX);
         let adjacent: Vec<(i32, i32)> = vec![(x, y - 1), (x - 1, y), (x + 1, y), (x, y + 1)];
 
         for coord in adjacent {
-            if let Some(risk) = map.get(&coord) {
-                to_visit.push_back(Visited {
+            if unvisited.contains(&coord) {
+                let new_risk = current_risk + map.get(&coord).unwrap();
+                heap.push(DjNode {
                     coord,
-                    total_risk: current.total_risk + risk,
+                    total_cost: new_risk,
                 });
             }
         }
+        unvisited.remove(&current.coord);
     }
 
-    min_risk
+    unreachable!()
 }
 
 #[cfg(test)]
