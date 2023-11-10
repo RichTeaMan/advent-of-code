@@ -5,7 +5,7 @@ use std::{
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 const RESET_TIMER: i32 = 6;
 const NEW_TIMER: i32 = 8;

@@ -1,6 +1,6 @@
 use std::io::{self};
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_3() -> io::Result<i32> {
     calc_power_consumption("./inputs/day-3-input.txt")

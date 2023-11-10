@@ -2,7 +2,7 @@ use std::io::{self};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_4() -> io::Result<i32> {
     determine_winning_board("./inputs/day-4-input.txt")

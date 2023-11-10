@@ -2,8 +2,7 @@ use std::{
     collections::VecDeque,
     io::{self},
 };
-
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_1() -> io::Result<i32> {
     fetch_increase_measurements("./inputs/day-1-input.txt")

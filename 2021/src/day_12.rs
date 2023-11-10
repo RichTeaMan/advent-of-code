@@ -6,7 +6,7 @@ use std::{
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 const START: &str = "start";
 const END: &str = "end";

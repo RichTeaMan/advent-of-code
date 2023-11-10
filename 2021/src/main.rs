@@ -13,7 +13,6 @@ mod day_6;
 mod day_7;
 mod day_8;
 mod day_9;
-mod file_utils;
 
 use crate::day_1::{day_1, day_1_part_2};
 use crate::day_10::{day_10, day_10_part_2};

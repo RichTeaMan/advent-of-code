@@ -2,7 +2,7 @@ use std::io::{self};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_2() -> io::Result<i32> {
     calc_position("./inputs/day-2-input.txt")

@@ -3,7 +3,7 @@ use std::{
     io::{self},
 };
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_9() -> io::Result<i32> {
     find_risk_of_lowpoint("./inputs/day-9-input.txt")

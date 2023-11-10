@@ -3,7 +3,7 @@ use std::{
     io::{self},
 };
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_10() -> io::Result<i32> {
     find_syntax_errors("./inputs/day-10-input.txt")

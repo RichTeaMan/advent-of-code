@@ -1,6 +1,6 @@
 use std::io::{self};
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_7() -> io::Result<i32> {
     find_low_fuel_position("./inputs/day-7-input.txt")
