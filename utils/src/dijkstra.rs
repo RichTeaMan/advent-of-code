@@ -1,10 +1,9 @@
-use std::collections::{HashSet, BinaryHeap};
+use std::collections::{BinaryHeap, HashSet};
 
-use crate::coordinate::{Coordinate,  CoordinateMap};
+use crate::coordinate::{Coordinate, CoordinateMap};
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct DijkstraNode {
-
+struct DijkstraNode {
     pub coordinate: Coordinate,
     /**
      * Gets the cost of travelling to this node from the start node.
@@ -26,13 +25,12 @@ impl PartialOrd for DijkstraNode {
 
 /**
  * Uses Dijkstra's algorithm to find the shortest path from the start node to the end node.
- * 
- * THe route is not returned, only the cost of traversing that path.
- * 
+ *
+ * The route is not returned, only the cost of traversing that path.
+ *
  * Returns i32::MAX if no path is found.
  */
-pub fn calc_route_cost(map: &CoordinateMap<i32>, start: &Coordinate, end:&Coordinate) -> i32 {
-
+pub fn calc_route_cost(map: &CoordinateMap<i32>, start: &Coordinate, end: &Coordinate) -> i32 {
     let mut unvisited = HashSet::new();
     for c in map.keys() {
         unvisited.insert(*c);

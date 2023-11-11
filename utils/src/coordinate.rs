@@ -1,4 +1,4 @@
-use std::{fmt::Display, collections::HashMap};
+use std::{collections::HashMap, fmt::Display};
 
 /**
  * Represents cartesian coordinates. By convention, the origin (0, 0) is the top-left corner.
@@ -9,9 +9,12 @@ pub struct Coordinate {
     pub y: i32,
 }
 
-impl From<(i32,i32)> for Coordinate {
-    fn from(item: (i32,i32)) -> Self {
-        Coordinate { x: item.0, y: item.1 }
+impl From<(i32, i32)> for Coordinate {
+    fn from(item: (i32, i32)) -> Self {
+        Coordinate {
+            x: item.0,
+            y: item.1,
+        }
     }
 }
 
@@ -32,10 +35,22 @@ impl Coordinate {
 
     pub fn orthogonal(&self) -> Vec<Self> {
         vec![
-            Coordinate { x: self.x - 1, y: self.y },
-            Coordinate { x: self.x + 1, y: self.y },
-            Coordinate { x: self.x, y: self.y - 1 },
-            Coordinate { x: self.x, y: self.y + 1 },
+            Coordinate {
+                x: self.x - 1,
+                y: self.y,
+            },
+            Coordinate {
+                x: self.x + 1,
+                y: self.y,
+            },
+            Coordinate {
+                x: self.x,
+                y: self.y - 1,
+            },
+            Coordinate {
+                x: self.x,
+                y: self.y + 1,
+            },
         ]
     }
 }
