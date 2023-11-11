@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 utils = { path = "../utils" }
-itertools = "0.10.5"
-slice-group-by = "0.3.0"
-sscanf = "0.4.0"
-strum = "0.24"
-strum_macros = "0.24"
+itertools = "0.11.0"
+slice-group-by = "0.3.1"
+sscanf = "0.4.1"
+strum = "0.25"
+strum_macros = "0.25"
