@@ -130,7 +130,6 @@ fn bit_transmission_from_bits(bits: &mut VecDeque<bool>) -> BitTransmission {
     let type_id = read_number_from_bits(bits, 3);
 
     if type_id == 4 {
-
         let mut value = 0_i64;
         loop {
             let end = !read_bool_from_bits(bits);
