@@ -157,12 +157,12 @@ mod tests {
             112
         );
     }
-    //
-    //  #[test]
-    //  fn part_2_test() {
-    //      assert_eq!(
-    //          count_polymer_parts(40, "./inputs/day-14-input.txt").unwrap(),
-    //          3318837563123
-    //      );
-    //  }
+    
+      #[test]
+      fn part_2_test() {
+          assert_eq!(
+            find_working_vectors_from_file("./inputs/day-17-input.txt").unwrap(),
+              2994
+          );
+      }
 }
