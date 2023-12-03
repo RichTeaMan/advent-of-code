@@ -42,6 +42,46 @@ impl Coordinate {
             },
         ]
     }
+
+    /**
+     * Gets all surrounding coordinates, including diagonals.
+     */
+    pub fn surround(&self) -> Vec<Self> {
+        vec![
+            Coordinate {
+                x: self.x - 1,
+                y: self.y,
+            },
+            Coordinate {
+                x: self.x + 1,
+                y: self.y,
+            },
+            Coordinate {
+                x: self.x,
+                y: self.y - 1,
+            },
+            Coordinate {
+                x: self.x,
+                y: self.y + 1,
+            },
+            Coordinate {
+                x: self.x - 1,
+                y: self.y - 1,
+            },
+            Coordinate {
+                x: self.x + 1,
+                y: self.y - 1,
+            },
+            Coordinate {
+                x: self.x - 1,
+                y: self.y + 1,
+            },
+            Coordinate {
+                x: self.x + 1,
+                y: self.y + 1,
+            },
+        ]
+    }
 }
 
 impl Add for Coordinate {
