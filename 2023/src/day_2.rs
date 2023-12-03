@@ -100,10 +100,7 @@ fn fetch_games(filename: &str) -> io::Result<Vec<Game>> {
                 hints.push(hint);
             }
 
-            let game = Game {
-                id: game_id,
-                hints,
-            };
+            let game = Game { id: game_id, hints };
             games.push(game);
         } else {
             panic!("Unexpected parts after colon split.");
@@ -141,11 +138,11 @@ mod tests {
         );
     }
 
-    //#[test]
-    //fn part_2_test() {
-    //    assert_eq!(
-    //        calc_measurement_window_increase("./inputs/day-1-input.txt").unwrap(),
-    //        1491
-    //    );
-    //}
+    #[test]
+    fn part_2_test() {
+        assert_eq!(
+            fetch_power_of_games("./inputs/day-2-input.txt").unwrap(),
+            70768
+        );
+    }
 }
