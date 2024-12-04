@@ -1,8 +1,11 @@
 use std::{
     collections::HashMap,
     fmt::Display,
+    io,
     ops::{Add, Sub},
 };
+
+use crate::file_utils::read_lines;
 
 /**
  * Represents cartesian coordinates. By convention, the origin (0, 0) is the top-left corner.
@@ -12,6 +15,17 @@ pub struct Coordinate {
     pub x: i32,
     pub y: i32,
 }
+
+pub static COORDINATE_VECTORS: &'static [(i32, i32)] = &[
+    (0, -1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+    (0, 1),
+    (-1, 1),
+    (-1, 0),
+    (-1, -1),
+];
 
 impl Coordinate {
     pub fn new(x: i32, y: i32) -> Self {
@@ -116,3 +130,25 @@ impl Display for Coordinate {
 }
 
 pub type CoordinateMap<T> = HashMap<Coordinate, T>;
+
+pub fn char_coordinate_map_from_file(
+    filename: &str,
+    ignore_dot: bool,
+) -> io::Result<CoordinateMap<char>> {
+    let lines = read_lines(filename)?;
+    let mut coordinate_map = CoordinateMap::new();
+
+    for (y, line) in lines.flatten().enumerate() {
+        if line.is_empty() {
+            continue;
+        }
+
+        for (x, c) in line.chars().enumerate() {
+            if ignore_dot && c == '.' {
+                continue;
+            }
+            coordinate_map.insert(Coordinate::new(x as i32, y as i32), c);
+        }
+    }
+    Ok(coordinate_map)
+}
