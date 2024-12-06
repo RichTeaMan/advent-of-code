@@ -36,6 +36,11 @@ impl Coordinate {
         Coordinate { x: 0, y: 0 }
     }
 
+    pub fn add_tuple(&mut self, other: (i32, i32)) {
+        self.x += other.0;
+        self.y += other.1;
+    }
+
     pub fn orthogonal(&self) -> Vec<Self> {
         vec![
             Coordinate {
@@ -131,6 +136,9 @@ impl Display for Coordinate {
 
 pub type CoordinateMap<T> = HashMap<Coordinate, T>;
 
+/**
+ * (0, 0) is top left coordinate.
+ */
 pub fn char_coordinate_map_from_file(
     filename: &str,
     ignore_dot: bool,
