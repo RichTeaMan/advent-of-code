@@ -1,8 +1,5 @@
 use itertools::Itertools;
-use std::{
-    collections::HashSet,
-    io::{self},
-};
+use std::io::{self};
 use utils::file_utils::read_lines;
 
 pub fn day_7() -> io::Result<i64> {
@@ -18,19 +15,19 @@ fn calc_score(line: &str) -> io::Result<i64> {
     let mut score = 0;
 
     for (answer, inputs) in calibrations {
-        let mut attempts = HashSet::new();
-        attempts.insert(inputs[0]);
+        let mut attempts = vec![];
+        attempts.push(inputs[0]);
         for input in inputs.iter().skip(1) {
-            let mut new_attempts = HashSet::new();
+            let mut new_attempts = vec![];
             for a in attempts {
                 let add = a + input;
                 let mult = a * input;
 
                 if add <= answer {
-                    new_attempts.insert(add);
+                    new_attempts.push(add);
                 }
                 if mult <= answer {
-                    new_attempts.insert(mult);
+                    new_attempts.push(mult);
                 }
             }
             attempts = new_attempts;
@@ -52,23 +49,23 @@ fn calc_score_with_concat(line: &str) -> io::Result<i64> {
     let mut score = 0;
 
     for (answer, inputs) in calibrations {
-        let mut attempts = HashSet::new();
-        attempts.insert(inputs[0]);
+        let mut attempts = vec![];
+        attempts.push(inputs[0]);
         for input in inputs.iter().skip(1) {
-            let mut new_attempts = HashSet::new();
+            let mut new_attempts = vec![];
             for a in attempts {
                 let add = a + input;
                 let mult = a * input;
-                let concat = format!("{}{}", a, input).parse::<i64>().unwrap(); // i know.
+                let concat = a * 10i64.pow(input.ilog10() + 1) + input;
 
                 if add <= answer {
-                    new_attempts.insert(add);
+                    new_attempts.push(add);
                 }
                 if mult <= answer {
-                    new_attempts.insert(mult);
+                    new_attempts.push(mult);
                 }
                 if concat <= answer {
-                    new_attempts.insert(concat);
+                    new_attempts.push(concat);
                 }
             }
             attempts = new_attempts;
