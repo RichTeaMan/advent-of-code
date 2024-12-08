@@ -2,7 +2,7 @@ use std::{
     collections::HashSet,
     io::{self},
 };
-use utils::coordinate::{COORDINATE_VECTORS, Coordinate, char_coordinate_map_from_file};
+use utils::coordinate::char_coordinate_map_from_file;
 
 pub fn day_6() -> io::Result<i32> {
     calc_visited("./inputs/day-6-input.txt")
@@ -12,12 +12,9 @@ pub fn day_6_part_2() -> io::Result<i32> {
 }
 
 fn calc_visited(filename: &str) -> io::Result<i32> {
-    let map = char_coordinate_map_from_file(filename, true)?;
+    let (map, width, height) = char_coordinate_map_from_file(filename, true)?;
 
     let mut position = map.iter().find(|(_, v)| v == &&'^').unwrap().0.clone();
-
-    let height = map.iter().map(|(k, _)| k.y).max().unwrap() + 1;
-    let width = map.iter().map(|(k, _)| k.x).max().unwrap() + 1;
 
     let right = (1, 0);
     let up = (0, -1);
@@ -28,7 +25,7 @@ fn calc_visited(filename: &str) -> io::Result<i32> {
 
     let mut visited = HashSet::new();
 
-    while position.x >= 0 && position.x < width && position.y >= 0 && position.y < height {
+    while position.x >= 0 && position.x < width as i32 && position.y >= 0 && position.y < height as i32 {
         visited.insert(position.clone());
         let mut new_position = position.clone();
         new_position.add_tuple(vector);
@@ -58,13 +55,10 @@ fn calc_visited(filename: &str) -> io::Result<i32> {
 }
 
 fn calc_obstruction_positions(filename: &str) -> io::Result<i32> {
-    let mut map = char_coordinate_map_from_file(filename, true)?;
+    let ( mut map, width, height) = char_coordinate_map_from_file(filename, true)?;
 
     let start_position = map.iter().find(|(_, v)| v == &&'^').unwrap().0.clone();
     let mut position = start_position.clone();
-
-    let height = map.iter().map(|(k, _)| k.y).max().unwrap() + 1;
-    let width = map.iter().map(|(k, _)| k.x).max().unwrap() + 1;
 
     let right = (1, 0);
     let up = (0, -1);
@@ -75,7 +69,7 @@ fn calc_obstruction_positions(filename: &str) -> io::Result<i32> {
 
     let mut visited = HashSet::new();
 
-    while position.x >= 0 && position.x < width && position.y >= 0 && position.y < height {
+    while position.x >= 0 && position.x < width as i32 && position.y >= 0 && position.y < height as i32 {
         visited.insert(position);
         let mut new_position = position.clone();
         new_position.add_tuple(vector);
@@ -115,7 +109,7 @@ fn calc_obstruction_positions(filename: &str) -> io::Result<i32> {
 
         let mut obs_visited = HashSet::new();
 
-        while position.x >= 0 && position.x < width && position.y >= 0 && position.y < height {
+        while position.x >= 0 && position.x < width as i32 && position.y >= 0 && position.y < height as i32 {
             let mut new_position = position.clone();
             new_position.add_tuple(vector);
 

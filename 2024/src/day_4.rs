@@ -9,7 +9,7 @@ pub fn day_4_part_2() -> io::Result<i32> {
 }
 
 fn find_xmas(filename: &str) -> io::Result<i32> {
-    let map = char_coordinate_map_from_file(filename, false)?;
+    let (map, _, _) = char_coordinate_map_from_file(filename, false)?;
 
     let check_str = "MAS";
     let mut found_count = 0;
@@ -46,7 +46,7 @@ fn find_xmas(filename: &str) -> io::Result<i32> {
 }
 
 fn find_cross_mas(filename: &str) -> io::Result<i32> {
-    let map = char_coordinate_map_from_file(filename, false)?;
+    let (map, _, _) = char_coordinate_map_from_file(filename, false)?;
 
     let mut found_count = 0;
     for (coord, c) in map.iter() {

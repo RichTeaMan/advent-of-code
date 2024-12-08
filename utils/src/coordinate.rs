@@ -101,6 +101,10 @@ impl Coordinate {
             },
         ]
     }
+
+    pub fn in_bounds(&self, upper_x: i32, upper_y: i32) -> bool {
+        self.x >= 0 && self.x < upper_x && self.y >= 0 && self.y < upper_y
+    }
 }
 
 impl Add for Coordinate {
@@ -142,21 +146,26 @@ pub type CoordinateMap<T> = HashMap<Coordinate, T>;
 pub fn char_coordinate_map_from_file(
     filename: &str,
     ignore_dot: bool,
-) -> io::Result<CoordinateMap<char>> {
+) -> io::Result<(CoordinateMap<char>, u32, u32)> {
     let lines = read_lines(filename)?;
     let mut coordinate_map = CoordinateMap::new();
 
+    let mut width = 0;
+    let mut height = 0;
     for (y, line) in lines.flatten().enumerate() {
         if line.is_empty() {
             continue;
         }
+        height += 1;
+        width = 0;
 
         for (x, c) in line.chars().enumerate() {
+            width += 1;
             if ignore_dot && c == '.' {
                 continue;
             }
             coordinate_map.insert(Coordinate::new(x as i32, y as i32), c);
         }
     }
-    Ok(coordinate_map)
+    Ok((coordinate_map, width, height))
 }
