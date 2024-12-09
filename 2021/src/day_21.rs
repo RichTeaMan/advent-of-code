@@ -93,7 +93,7 @@ fn eval_game(mut players: Vec<Player>) -> i32 {
 fn load_players(filename: &str) -> io::Result<Vec<Player>> {
     let mut players = Vec::new();
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

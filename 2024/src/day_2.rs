@@ -42,7 +42,7 @@ fn calc_dampened_safe_reports(line: &str) -> io::Result<i32> {
     Ok(safe_reports)
 }
 
-fn evalulate_report(report: &Vec<i32>) -> bool {
+fn evalulate_report(report: &[i32]) -> bool {
     let increasing = report[0] < *report.last().unwrap();
     let mut current_level = report[0];
     let mut is_safe = true;
@@ -64,7 +64,7 @@ fn evalulate_report(report: &Vec<i32>) -> bool {
 fn fetch_reports(filename: &str) -> io::Result<Vec<Vec<i32>>> {
     let lines = read_lines(filename)?;
     let mut reports = vec![];
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

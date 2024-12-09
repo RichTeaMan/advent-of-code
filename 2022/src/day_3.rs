@@ -3,7 +3,7 @@ use std::io::{self};
 use itertools::Itertools;
 use slice_group_by::GroupBy;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_3() -> io::Result<i32> {
     fetch_item_priorities("./inputs/day-3-input.txt")
@@ -17,7 +17,7 @@ fn fetch_item_priorities(filename: &str) -> io::Result<i32> {
     let mut priority_sum = 0;
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -41,7 +41,7 @@ fn fetch_group_priorities(filename: &str) -> io::Result<i32> {
     let lines = read_lines(filename)?;
     let mut letters = Vec::new();
     let mut group_count = 0;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

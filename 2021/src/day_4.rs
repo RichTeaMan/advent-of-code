@@ -25,7 +25,7 @@ fn determine_winning_board(filename: &str) -> io::Result<i32> {
     let mut board_lines: Vec<BoardLine> = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             let mut columns = Vec::new();
             let boards: Vec<&BoardLine> = board_lines
@@ -100,7 +100,7 @@ fn determine_losing_board(filename: &str) -> io::Result<i32> {
     let mut board_lines: Vec<BoardLine> = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             let mut columns = Vec::new();
             let boards: Vec<&BoardLine> = board_lines

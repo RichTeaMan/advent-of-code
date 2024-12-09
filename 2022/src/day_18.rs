@@ -5,13 +5,13 @@ use std::{
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 fn calculate_exposed_sides(filename: &str) -> io::Result<i32> {
     let mut cubes = HashSet::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -56,7 +56,7 @@ fn calculate_external_sides(filename: &str) -> io::Result<i32> {
     let mut cubes = HashSet::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

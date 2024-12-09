@@ -24,7 +24,7 @@ struct ProbeState {
 
 fn load_target_area(filename: &str) -> io::Result<TargetArea> {
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

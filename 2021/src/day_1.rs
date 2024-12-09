@@ -57,7 +57,7 @@ fn fetch_measurements(filename: &str) -> io::Result<Vec<i32>> {
     let mut measurements_vec = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         let line_measurement_opt = line.parse::<i32>();
         if let Ok(line_measurement) = line_measurement_opt {
             measurements_vec.push(line_measurement);

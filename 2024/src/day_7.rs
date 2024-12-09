@@ -15,8 +15,7 @@ fn calc_score(line: &str) -> io::Result<i64> {
     let mut score = 0;
 
     for (answer, inputs) in calibrations {
-        let mut attempts = vec![];
-        attempts.push(inputs[0]);
+        let mut attempts = vec![inputs[0]];
         for input in inputs.iter().skip(1) {
             let mut new_attempts = vec![];
             for a in attempts {
@@ -49,8 +48,7 @@ fn calc_score_with_concat(line: &str) -> io::Result<i64> {
     let mut score = 0;
 
     for (answer, inputs) in calibrations {
-        let mut attempts = vec![];
-        attempts.push(inputs[0]);
+        let mut attempts = vec![inputs[0]];
         for input in inputs.iter().skip(1) {
             let mut new_attempts = vec![];
             for a in attempts {
@@ -84,7 +82,7 @@ fn calc_score_with_concat(line: &str) -> io::Result<i64> {
 fn fetch_digits(filename: &str) -> io::Result<Vec<(i64, Vec<i64>)>> {
     let lines = read_lines(filename)?;
     let mut elements = vec![];
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

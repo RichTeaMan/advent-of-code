@@ -43,7 +43,7 @@ impl BitTransmission {
                     "Greater than operator must have exactly 2 subs. Found {}.",
                     self.sub_packets.len()
                 );
-                if self.sub_packets.get(0).unwrap().evaluate()
+                if self.sub_packets.first().unwrap().evaluate()
                     > self.sub_packets.get(1).unwrap().evaluate()
                 {
                     1
@@ -59,7 +59,7 @@ impl BitTransmission {
                     "Less than operator must have exactly 2 subs. Found {}.",
                     self.sub_packets.len()
                 );
-                if self.sub_packets.get(0).unwrap().evaluate()
+                if self.sub_packets.first().unwrap().evaluate()
                     < self.sub_packets.get(1).unwrap().evaluate()
                 {
                     1
@@ -75,7 +75,7 @@ impl BitTransmission {
                     "Less than operator must have exactly 2 subs. Found {}.",
                     self.sub_packets.len()
                 );
-                if self.sub_packets.get(0).unwrap().evaluate()
+                if self.sub_packets.first().unwrap().evaluate()
                     == self.sub_packets.get(1).unwrap().evaluate()
                 {
                     1
@@ -109,7 +109,7 @@ fn evalutate_transmission(filename: &str) -> io::Result<i64> {
 
 fn load_transmissions(filename: &str) -> io::Result<BitTransmission> {
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -222,7 +222,7 @@ mod tests {
 
         let c = bit_transmission_from_string("EE00D40C823060".to_string());
         assert_eq!(c.sub_packets.len(), 3);
-        let c_1 = c.sub_packets.get(0).unwrap();
+        let c_1 = c.sub_packets.first().unwrap();
         let c_2 = c.sub_packets.get(1).unwrap();
         let c_3 = c.sub_packets.get(2).unwrap();
         assert_eq!(c.version, 7);

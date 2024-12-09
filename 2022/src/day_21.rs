@@ -2,7 +2,7 @@ use std::{collections::HashMap, io};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 const ROOT_NAME: &str = "root";
 const HUMAN_NAME: &str = "humn";
@@ -58,7 +58,7 @@ fn monkey_puzzle(human_player: bool, filename: &str) -> io::Result<i64> {
     let mut known_numbers = HashMap::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

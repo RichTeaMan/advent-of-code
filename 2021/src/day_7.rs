@@ -13,7 +13,7 @@ fn load_positions(filename: &str) -> io::Result<Vec<i32>> {
     let mut positions = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

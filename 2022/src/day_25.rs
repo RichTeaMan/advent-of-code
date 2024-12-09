@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 fn convert_snafu(snafu: &str) -> i64 {
     let mut decimal = 0;
@@ -88,7 +88,7 @@ fn snafu_target(target: i64, max_position: usize) -> String {
 fn sum_snafu_file(filename: &str) -> io::Result<String> {
     let mut sum_dec = 0;
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

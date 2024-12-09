@@ -19,11 +19,11 @@ fn find_xmas(filename: &str) -> io::Result<i32> {
         }
 
         for coord_vec in COORDINATE_VECTORS {
-            let mut current_coord = coord.clone();
+            let mut current_coord = *coord;
 
             let mut found = true;
             for check_c in check_str.chars() {
-                let check_coord = current_coord + Coordinate::from(coord_vec.clone());
+                let check_coord = current_coord + Coordinate::from(*coord_vec);
 
                 if let Some(v) = map.get(&check_coord) {
                     if *v == check_c {
@@ -54,7 +54,7 @@ fn find_cross_mas(filename: &str) -> io::Result<i32> {
             continue;
         }
 
-        let top_left_coord = coord.clone() + Coordinate::from((-1, -1));
+        let top_left_coord = *coord + Coordinate::from((-1, -1));
         let top_left_opt = map.get(&top_left_coord);
         let req_bottom_right;
 
@@ -66,12 +66,12 @@ fn find_cross_mas(filename: &str) -> io::Result<i32> {
             continue;
         }
 
-        let bottom_right_coord = coord.clone() + Coordinate::from((1, 1));
+        let bottom_right_coord = *coord + Coordinate::from((1, 1));
         if map.get(&bottom_right_coord) != req_bottom_right {
             continue;
         }
 
-        let top_right_coord = coord.clone() + Coordinate::from((1, -1));
+        let top_right_coord = *coord + Coordinate::from((1, -1));
         let top_right_opt = map.get(&top_right_coord);
         let req_bottom_left;
 
@@ -83,7 +83,7 @@ fn find_cross_mas(filename: &str) -> io::Result<i32> {
             continue;
         }
 
-        let bottom_left_coord = coord.clone() + Coordinate::from((-1, 1));
+        let bottom_left_coord = *coord + Coordinate::from((-1, 1));
         if map.get(&bottom_left_coord) != req_bottom_left {
             continue;
         }

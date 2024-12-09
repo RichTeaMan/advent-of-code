@@ -33,9 +33,9 @@ fn calc_antinodes(filename: &str) -> io::Result<i32> {
 
             let diff = ((a.x - b.x), (a.y - b.y));
 
-            let mut antinode_1 = a.clone();
+            let mut antinode_1 = *a;
 
-            let mut antinode_2 = b.clone();
+            let mut antinode_2 = *b;
             antinode_1.add_tuple(diff);
             antinode_2.add_tuple((-diff.0, -diff.1));
 
@@ -76,17 +76,17 @@ fn calc_resonant_antinodes(filename: &str) -> io::Result<i32> {
             let b = combination[1];
             debug_assert_ne!(a, b);
 
-            antinodes.insert(a.clone());
+            antinodes.insert(*a);
 
             let diff = ((a.x - b.x), (a.y - b.y));
 
-            let mut prev_node = a.clone();
+            let mut prev_node = *a;
             loop {
-                let mut antinode = prev_node.clone();
+                let mut antinode = prev_node;
                 antinode.add_tuple(diff);
 
                 if antinode.in_bounds(width as i32, height as i32) {
-                    prev_node = antinode.clone();
+                    prev_node = antinode;
                     antinodes.insert(antinode);
                 } else {
                     break;
@@ -94,13 +94,13 @@ fn calc_resonant_antinodes(filename: &str) -> io::Result<i32> {
             }
 
             let neg_diff = (-diff.0, -diff.1);
-            let mut prev_node = a.clone();
+            let mut prev_node = *a;
             loop {
-                let mut antinode = prev_node.clone();
+                let mut antinode = prev_node;
                 antinode.add_tuple(neg_diff);
 
                 if antinode.in_bounds(width as i32, height as i32) {
-                    prev_node = antinode.clone();
+                    prev_node = antinode;
                     antinodes.insert(antinode);
                 } else {
                     break;

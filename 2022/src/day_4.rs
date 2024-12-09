@@ -2,7 +2,7 @@ use std::io::{self};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 struct ElfRange {
     pub start: i32,
@@ -43,7 +43,7 @@ fn fetch_overlapping_pairs(filename: &str) -> io::Result<i32> {
     let mut overlapping_pairs = 0;
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -65,7 +65,7 @@ fn fetch_overlapping_ranges(filename: &str) -> io::Result<i32> {
     let mut overlapping_pairs = 0;
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

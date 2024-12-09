@@ -5,7 +5,7 @@ use std::{
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 type NodeList = Vec<ValveNode>;
 
@@ -13,12 +13,6 @@ trait NodeListExt {
     fn fetch_index_by_name(&self, name: &str) -> Option<usize>;
 
     fn fetch_or_create_index_by_name(&mut self, name: &str) -> usize;
-
-    fn fetch_connected_name(&self, index: usize) -> Vec<String>;
-
-    fn fetch_names(&self, indexes: &[usize]) -> Vec<String>;
-
-    fn fetch_journey_length(&self, current_index: usize, destination_index: usize) -> i32;
 
     fn fetch_all_journey_length(&self, current_index: usize) -> Vec<i32>;
 }
@@ -42,49 +36,6 @@ impl NodeListExt for NodeList {
             self.push(ValveNode::with_name(trimmed.to_string()));
             i
         }
-    }
-
-    fn fetch_connected_name(&self, index: usize) -> Vec<String> {
-        let mut names = Vec::new();
-        for i in &self[index].connected_indexes {
-            names.push(self[*i].name.clone());
-        }
-        names
-    }
-
-    fn fetch_names(&self, indexes: &[usize]) -> Vec<String> {
-        let mut names = Vec::new();
-        for i in indexes {
-            names.push(self[*i].name.clone());
-        }
-        names
-    }
-
-    fn fetch_journey_length(&self, current_index: usize, destination_index: usize) -> i32 {
-        let mut visited = vec![-1; self.len()];
-        visited[current_index] = 0;
-
-        let mut indexes_to_check = Vec::new();
-        for c in &self[current_index].connected_indexes {
-            visited[*c] = 1;
-            indexes_to_check.push(*c);
-        }
-        let mut steps = 2;
-        while visited[destination_index] == -1 || !indexes_to_check.is_empty() {
-            let mut new_indexes: Vec<usize> = Vec::new();
-            for i in indexes_to_check {
-                for c in &self[i].connected_indexes {
-                    if visited[*c] == -1 {
-                        visited[*c] = steps;
-                        new_indexes.push(*c);
-                    }
-                }
-            }
-            steps += 1;
-            indexes_to_check = new_indexes;
-        }
-
-        visited[destination_index]
     }
 
     fn fetch_all_journey_length(&self, current_index: usize) -> Vec<i32> {
@@ -135,7 +86,7 @@ fn build_nodes(filename: &str) -> io::Result<NodeList> {
     let mut node_list = NodeList::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -311,31 +262,6 @@ pub fn day_16_part_2() -> io::Result<i32> {
 mod tests {
 
     use super::*;
-
-    #[test]
-    fn build_nodes_test() {
-        let node_list = build_nodes("./inputs/day-16-input-test.txt").unwrap();
-
-        for node in &node_list {
-            println!(
-                "{n}: flow: {f} children: {c:?}",
-                n = node.name,
-                f = node.flow_rate,
-                c = node_list.fetch_names(&node.connected_indexes)
-            );
-        }
-        assert_eq!(3, node_list[0].connected_indexes.len());
-    }
-
-    #[test]
-    fn fetch_journey_length_test() {
-        let node_list = build_nodes("./inputs/day-16-input-test.txt").unwrap();
-
-        let aa = node_list.fetch_index_by_name("AA").unwrap();
-        let hh = node_list.fetch_index_by_name("HH").unwrap();
-
-        assert_eq!(5, node_list.fetch_journey_length(aa, hh));
-    }
 
     #[test]
     fn small_test() {

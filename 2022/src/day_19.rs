@@ -2,7 +2,7 @@ use std::{collections::VecDeque, io};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 const PART_1_TIME: i32 = 24;
 const PART_2_TIME: i32 = 32;
@@ -23,12 +23,10 @@ struct Blueprint {
 
 impl Blueprint {
     fn max_ore_bots_needed(&self) -> i32 {
-        vec![
-            self.ore_robot_ore_cost,
+        [self.ore_robot_ore_cost,
             self.clay_robot_ore_cost,
             self.obsidian_robot_ore_cost,
-            self.geode_robot_ore_cost,
-        ]
+            self.geode_robot_ore_cost]
         .iter()
         .max()
         .unwrap()
@@ -153,7 +151,7 @@ fn load_blueprints(filename: &str) -> io::Result<Vec<Blueprint>> {
     let mut blueprints = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

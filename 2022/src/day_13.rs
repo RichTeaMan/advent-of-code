@@ -3,7 +3,7 @@ use std::{cmp::Ordering, io};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 struct Packet {
     pub value: Option<i32>,
@@ -74,7 +74,7 @@ impl Packet {
                 }
                 other => {
                     if other.is_ascii_digit() {
-                        number_buffer.push_str(&other.to_string());
+                        number_buffer.push(other);
                     } else {
                         panic!("Unexpected value: '{other}'.");
                     }
@@ -103,7 +103,22 @@ impl Packet {
 
 impl Ord for Packet {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
+        if self.value.is_some() && other.value.is_some() {
+            return self.value.unwrap().cmp(&other.value.unwrap());
+        } else if let Some(v) = self.value {
+            let list_a = Packet {
+                value: None,
+                list: vec![Packet::from_number(v)],
+            };
+            return cmp_array(&list_a, other);
+        } else if let Some(v) = other.value {
+            let list_b = Packet {
+                value: None,
+                list: vec![Packet::from_number(v)],
+            };
+            return cmp_array(self, &list_b);
+        }
+        cmp_array(self, other)
     }
 }
 
@@ -117,23 +132,7 @@ impl PartialEq for Packet {
 
 impl PartialOrd for Packet {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if self.value.is_some() && other.value.is_some() {
-            return Some(self.value.unwrap().cmp(&other.value.unwrap()));
-        } else if let Some(v) = self.value {
-            let list_a = Packet {
-                value: None,
-                list: vec![Packet::from_number(v)],
-            };
-            return Some(cmp_array(&list_a, other));
-        } else if let Some(v) = other.value {
-            let list_b = Packet {
-                value: None,
-                list: vec![Packet::from_number(v)],
-            };
-            return Some(cmp_array(self, &list_b));
-        }
-
-        Some(cmp_array(self, other))
+        Some(self.cmp(other)) 
     }
 }
 
@@ -169,7 +168,7 @@ fn compare_sets_from_file(filename: &str) -> io::Result<i32> {
     let mut a = None;
     let mut b = None;
     let mut index = 1;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             let aw = a.unwrap();
             let bw = b.unwrap();
@@ -205,7 +204,7 @@ fn order_sets_from_file(filename: &str) -> io::Result<i32> {
     let divider_b = "[[6]]";
 
     let mut packets = Vec::new();
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

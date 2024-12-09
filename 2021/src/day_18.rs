@@ -381,7 +381,7 @@ impl SnailValue {
 fn load_snail_numbers(filename: &str) -> io::Result<Vec<SnailNumber>> {
     let mut snail_numbers = Vec::new();
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

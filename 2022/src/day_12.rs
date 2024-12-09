@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, io};
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 struct Map {
     cells: Vec<Vec<i32>>,
@@ -148,7 +148,7 @@ fn build_map(filename: &str) -> io::Result<Map> {
     let mut y = 0;
     let mut start_opt = None;
     let mut end_opt = None;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

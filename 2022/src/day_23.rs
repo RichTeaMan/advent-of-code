@@ -3,7 +3,7 @@ use std::{
     io,
 };
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 type Map = HashSet<(i32, i32)>;
 
@@ -11,7 +11,7 @@ fn load_map(filename: &str) -> io::Result<Map> {
     let mut map = Map::new();
 
     let lines = read_lines(filename)?;
-    for (y, line) in lines.flatten().enumerate() {
+    for (y, line) in lines.enumerate() {
         if line.is_empty() {
             continue;
         }

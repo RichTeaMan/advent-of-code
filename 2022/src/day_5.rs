@@ -5,7 +5,7 @@ use std::{
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 struct CraneStacks {
     pub stacks: Vec<VecDeque<char>>,
@@ -40,7 +40,7 @@ pub fn day_5_part_2() -> io::Result<String> {
 fn fetch_starting_stacks(filepath: &str) -> io::Result<CraneStacks> {
     let mut stacks: Vec<VecDeque<char>> = Vec::new();
     let lines = read_lines(filepath)?;
-    for line in lines.flatten() {
+    for line in lines {
         if !line.contains('[') {
             break;
         }
@@ -79,7 +79,7 @@ fn execute_crane_instructions(
     mut crane_stacks: CraneStacks,
 ) -> io::Result<CraneStacks> {
     let lines = read_lines(filepath)?;
-    for line in lines.flatten() {
+    for line in lines {
         if !line.contains("move") {
             continue;
         }
@@ -117,7 +117,7 @@ fn execute_bulk_crane_instructions(
     mut crane_stacks: CraneStacks,
 ) -> io::Result<CraneStacks> {
     let lines = read_lines(filepath)?;
-    for line in lines.flatten() {
+    for line in lines {
         if !line.contains("move") {
             continue;
         }

@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::HashMap, io};
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 type Map = HashMap<i32, HashMap<i32, MapSection>>;
 
@@ -196,7 +196,7 @@ fn load_map(filename: &str) -> io::Result<(Map, Vec<Instruction>)> {
     let mut map: Map = HashMap::new();
     let mut instructions = Vec::new();
     let lines = read_lines(filename)?;
-    for (y, line) in lines.flatten().enumerate() {
+    for (y, line) in lines.enumerate() {
         if line.is_empty() {
             continue;
         }
@@ -478,7 +478,6 @@ fn map_puzzle(filename: &str) -> io::Result<i32> {
         .get(&0)
         .unwrap()
         .keys()
-        .into_iter()
         .min()
         .unwrap()
         .to_owned();
@@ -650,7 +649,6 @@ fn min_x(map: &Map, y: i32) -> i32 {
     map.get(&y)
         .unwrap()
         .keys()
-        .into_iter()
         .min()
         .unwrap()
         .to_owned()
@@ -660,7 +658,6 @@ fn max_x(map: &Map, y: i32) -> i32 {
     map.get(&y)
         .unwrap()
         .keys()
-        .into_iter()
         .max()
         .unwrap()
         .to_owned()

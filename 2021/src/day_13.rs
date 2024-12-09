@@ -26,7 +26,7 @@ fn load_plot(filename: &str) -> io::Result<FoldingPlot> {
     let mut folds = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -70,7 +70,7 @@ fn perform_fold(plot: HashSet<(i32, i32)>, fold: &Fold) -> HashSet<(i32, i32)> {
 
 fn fold_first(filepath: &str) -> io::Result<i32> {
     let (plot, folds) = load_plot(filepath)?;
-    let new_plot = perform_fold(plot, folds.get(0).unwrap());
+    let new_plot = perform_fold(plot, folds.first().unwrap());
     Ok(new_plot.len() as i32)
 }
 

@@ -2,7 +2,7 @@ use std::io;
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 struct Cpu {
     pub x_reg: i32,
@@ -58,7 +58,7 @@ fn draw_cycles(filename: &str) -> io::Result<(i32, String)> {
     let step_sample_cycle = 40;
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

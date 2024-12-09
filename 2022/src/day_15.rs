@@ -1,6 +1,6 @@
 use std::{collections::HashSet, io};
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 struct Sensor {
     x: i32,
@@ -23,7 +23,7 @@ fn read_slice_from_file(filename: &str) -> io::Result<Vec<Sensor>> {
     let lines = read_lines(filename)?;
 
     let mut sensors = Vec::new();
-    for line in lines.flatten() {
+    for line in lines {
         let parsed = sscanf::sscanf!(
             line,
             "Sensor at x={}, y={}: closest beacon is at x={}, y={}",

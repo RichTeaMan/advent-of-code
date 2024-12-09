@@ -2,7 +2,7 @@ use std::io;
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 const STARTING_ITEMS_PREFIX: &str = "Starting items: ";
 
@@ -124,7 +124,7 @@ fn monkey_sim(worry_level: i64, rounds: i64, filename: &str) -> io::Result<i64> 
     let mut current_monkey = Monkey::default();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

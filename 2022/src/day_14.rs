@@ -2,7 +2,7 @@ use std::{collections::HashMap, io};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 type Map = HashMap<(i32, i32), char>;
 
@@ -48,7 +48,7 @@ fn read_slice_from_file(filename: &str) -> io::Result<Map> {
     let lines = read_lines(filename)?;
 
     let mut map: Map = HashMap::new();
-    for line in lines.flatten() {
+    for line in lines {
         let mut prev_coord = None;
         let parts = line.split("->");
         for part in parts {

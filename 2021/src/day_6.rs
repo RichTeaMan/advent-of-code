@@ -26,7 +26,7 @@ fn load_generation(filename: &str) -> io::Result<Vec<Generation>> {
     let mut generations: HashMap<i32, Generation> = HashMap::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

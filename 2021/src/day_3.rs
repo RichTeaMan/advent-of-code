@@ -14,7 +14,7 @@ fn calc_power_consumption(filename: &str) -> io::Result<i32> {
 
     let mut values = Vec::new();
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -61,7 +61,7 @@ fn calc_gas(filename: &str) -> io::Result<i32> {
 
     let mut values = Vec::new();
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

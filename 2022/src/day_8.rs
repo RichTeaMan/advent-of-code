@@ -5,7 +5,7 @@ use std::{
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_8() -> io::Result<i32> {
     let visible_trees = fetch_visible_trees("./inputs/day-8-input.txt")?;
@@ -147,7 +147,7 @@ fn fetch_visible_trees(filename: &str) -> io::Result<i32> {
 fn load_trees(filename: &str) -> io::Result<Vec<Vec<i32>>> {
     let mut tree_rows = Vec::new();
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         let tree_row = line
             .chars()
             .map(|c| {

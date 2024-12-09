@@ -65,7 +65,7 @@ fn fetch_games(filename: &str) -> io::Result<Vec<Game>> {
     let mut games = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

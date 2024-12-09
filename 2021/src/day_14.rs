@@ -21,7 +21,7 @@ fn load_polymers(filename: &str) -> io::Result<Polymer> {
     let mut template = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

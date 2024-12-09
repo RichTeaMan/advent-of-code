@@ -2,7 +2,7 @@ use std::{collections::VecDeque, io};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 const DECRYPTION_KEY: i64 = 811589153;
 
@@ -10,7 +10,7 @@ fn decrypt(mix_amount: i32, decryption_key: i64, filename: &str) -> io::Result<V
     let mut numbers = VecDeque::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -33,7 +33,7 @@ fn decrypt(mix_amount: i32, decryption_key: i64, filename: &str) -> io::Result<V
                 "{new_index}"
             );
 
-            results.insert(new_index as usize, i as usize);
+            results.insert(new_index as usize, i);
         }
     }
 

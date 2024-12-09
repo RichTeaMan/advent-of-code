@@ -45,7 +45,7 @@ fn fetch_almanac(filename: &str) -> io::Result<Almanac> {
     let mut seeds = None;
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

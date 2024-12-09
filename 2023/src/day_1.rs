@@ -68,7 +68,7 @@ fn fetch_digits(filename: &str) -> io::Result<i32> {
     let mut result = 0;
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -81,7 +81,7 @@ fn fetch_digits_and_words(filename: &str) -> io::Result<i32> {
     let mut result = 0;
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

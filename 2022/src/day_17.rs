@@ -3,7 +3,7 @@ use std::{
     io,
 };
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 const ARENA_WIDTH: usize = 7;
 
@@ -33,7 +33,7 @@ fn calculate_height(blocks_to_drop: u64, filename: &str) -> io::Result<u64> {
 
     let mut jets = Vec::new();
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -46,7 +46,7 @@ fn calculate_height(blocks_to_drop: u64, filename: &str) -> io::Result<u64> {
 
     let mut shape_id = 0;
     let mut shape = fetch_shape(shape_id);
-    let mut shape_coord = (LEFT_MARGIN, DOWN_MARGIN as i32 + 1);
+    let mut shape_coord = (LEFT_MARGIN, DOWN_MARGIN + 1);
     let mut blocks_dropped = 0;
 
     let mut sequence_found = false;
@@ -138,7 +138,7 @@ fn calculate_height(blocks_to_drop: u64, filename: &str) -> io::Result<u64> {
             shape_id %= 5;
 
             shape = fetch_shape(shape_id);
-            shape_coord = (LEFT_MARGIN, top + DOWN_MARGIN as i32 + 1);
+            shape_coord = (LEFT_MARGIN, top + DOWN_MARGIN + 1);
             assert!(shape_coord.1 >= 0);
 
             blocks_dropped += 1;

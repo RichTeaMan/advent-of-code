@@ -152,7 +152,7 @@ pub fn char_coordinate_map_from_file(
 
     let mut width = 0;
     let mut height = 0;
-    for (y, line) in lines.flatten().enumerate() {
+    for (y, line) in lines.enumerate() {
         if line.is_empty() {
             continue;
         }

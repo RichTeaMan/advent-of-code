@@ -3,7 +3,7 @@ use std::{
     path::Path,
 };
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 #[derive(Eq, PartialEq, Clone)]
 pub enum Shape {
@@ -100,7 +100,7 @@ where
 {
     let mut score = 0;
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -147,7 +147,7 @@ where
 {
     let mut score = 0;
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

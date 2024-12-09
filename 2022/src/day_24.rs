@@ -6,7 +6,7 @@ use std::{
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 enum Destination {
     Beginning,
@@ -144,13 +144,13 @@ fn load_map(filename: &str) -> io::Result<Map> {
     let mut blizzards = Vec::new();
 
     let lines = read_lines(filename)?;
-    for (y, line) in lines.flatten().enumerate() {
+    for (y, line) in lines.enumerate() {
         if line.is_empty() {
             continue;
         }
 
         // start or end
-        if line.chars().into_iter().filter(|c| *c == '#').count() > 2 {
+        if line.chars().filter(|c| *c == '#').count() > 2 {
             if width_opt.is_none() {
                 width_opt = Some(line.chars().count() as i32 - 2);
             } else {

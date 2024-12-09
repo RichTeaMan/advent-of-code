@@ -14,7 +14,7 @@ pub fn day_6_part_2() -> io::Result<i32> {
 fn calc_visited(filename: &str) -> io::Result<i32> {
     let (map, width, height) = char_coordinate_map_from_file(filename, true)?;
 
-    let mut position = map.iter().find(|(_, v)| v == &&'^').unwrap().0.clone();
+    let mut position = *map.iter().find(|(_, v)| v == &&'^').unwrap().0;
 
     let right = (1, 0);
     let up = (0, -1);
@@ -26,8 +26,8 @@ fn calc_visited(filename: &str) -> io::Result<i32> {
     let mut visited = HashSet::new();
 
     while position.x >= 0 && position.x < width as i32 && position.y >= 0 && position.y < height as i32 {
-        visited.insert(position.clone());
-        let mut new_position = position.clone();
+        visited.insert(position);
+        let mut new_position = position;
         new_position.add_tuple(vector);
         if let Some(c) = map.get(&new_position) {
             if *c == '#' {
@@ -57,8 +57,8 @@ fn calc_visited(filename: &str) -> io::Result<i32> {
 fn calc_obstruction_positions(filename: &str) -> io::Result<i32> {
     let ( mut map, width, height) = char_coordinate_map_from_file(filename, true)?;
 
-    let start_position = map.iter().find(|(_, v)| v == &&'^').unwrap().0.clone();
-    let mut position = start_position.clone();
+    let start_position = *map.iter().find(|(_, v)| v == &&'^').unwrap().0;
+    let mut position = start_position;
 
     let right = (1, 0);
     let up = (0, -1);
@@ -71,7 +71,7 @@ fn calc_obstruction_positions(filename: &str) -> io::Result<i32> {
 
     while position.x >= 0 && position.x < width as i32 && position.y >= 0 && position.y < height as i32 {
         visited.insert(position);
-        let mut new_position = position.clone();
+        let mut new_position = position;
         new_position.add_tuple(vector);
 
         if let Some(c) = map.get(&new_position) {
@@ -103,14 +103,14 @@ fn calc_obstruction_positions(filename: &str) -> io::Result<i32> {
         if obstruction == start_position {
             continue;
         }
-        map.insert(obstruction.clone(), '#');
+        map.insert(obstruction, '#');
         vector = up;
-        position = start_position.clone();
+        position = start_position;
 
         let mut obs_visited = HashSet::new();
 
         while position.x >= 0 && position.x < width as i32 && position.y >= 0 && position.y < height as i32 {
-            let mut new_position = position.clone();
+            let mut new_position = position;
             new_position.add_tuple(vector);
 
             if let Some(c) = map.get(&new_position) {

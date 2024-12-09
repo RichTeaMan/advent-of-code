@@ -22,7 +22,7 @@ fn fetch_scratch_cards(filename: &str) -> io::Result<Vec<ScratchCard>> {
     let mut scratch_cards = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

@@ -31,7 +31,7 @@ fn fetch_schematic(filename: &str) -> io::Result<Schematic> {
     let mut digit_coords = HashMap::new();
 
     let lines = read_lines(filename)?;
-    for (y, line) in lines.flatten().enumerate() {
+    for (y, line) in lines.enumerate() {
         if line.is_empty() {
             continue;
         }

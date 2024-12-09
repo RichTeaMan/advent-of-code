@@ -1,6 +1,6 @@
 use std::io::{self};
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 /**
  * Gets the highest calorie count from day-1-input.txt.
@@ -27,7 +27,7 @@ fn fetch_calories() -> io::Result<Vec<i32>> {
 
     let lines = read_lines("./inputs/day-1-input.txt")?;
     let mut calories = 0;
-    for line in lines.flatten() {
+    for line in lines {
         let line_calories_opt = line.parse::<i32>();
         if let Ok(line_calories) = line_calories_opt {
             calories += line_calories;

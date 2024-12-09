@@ -5,6 +5,8 @@ use std::{
 };
 use utils::file_utils::read_lines;
 
+type OrderUpdateList = (Vec<(i32, i32)>, Vec<Vec<i32>>);
+
 pub fn day_5() -> io::Result<i32> {
     calc_middle_pages("./inputs/day-5-input.txt")
 }
@@ -71,12 +73,12 @@ fn calc_and_fix_middle_pages(filename: &str) -> io::Result<i32> {
     Ok(middle_cumm)
 }
 
-fn fetch_rules(filename: &str) -> io::Result<(Vec<(i32, i32)>, Vec<Vec<i32>>)> {
+fn fetch_rules(filename: &str) -> io::Result<OrderUpdateList> {
     let lines = read_lines(filename)?;
     let mut order_rules = vec![];
     let mut update_list = vec![];
 
-    for line in lines.flatten() {
+    for line in lines {
         if line.contains("|") {
             let order_rule = sscanf::sscanf!(line, "{}|{}", i32, i32).unwrap();
             order_rules.push(order_rule);

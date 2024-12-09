@@ -74,7 +74,7 @@ fn calc_checksum(filename: &str) -> io::Result<i64> {
         block_index += block.file_length;
     }
 
-    Ok(checksum as i64)
+    Ok(checksum)
 }
 
 fn calc_whole_file_checksum(filename: &str) -> io::Result<i64> {
@@ -150,7 +150,7 @@ fn calc_whole_file_checksum(filename: &str) -> io::Result<i64> {
         block_index += block.file_length + block.free_space;
     }
 
-    Ok(checksum as i64)
+    Ok(checksum)
 }
 
 struct FileBlock {
@@ -163,7 +163,7 @@ fn fetch_file_blocks(filename: &str) -> io::Result<Vec<FileBlock>> {
     let lines = read_lines(filename)?;
     let mut id = 0;
     let mut file_blocks = vec![];
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

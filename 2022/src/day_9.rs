@@ -2,7 +2,7 @@ use std::{collections::HashSet, fmt::Display, io};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 #[derive(PartialEq, Eq, Clone, Hash, Debug, Copy, Ord, PartialOrd)]
 struct Point {
@@ -115,7 +115,7 @@ fn fetch_tail_position_count(filename: &str) -> io::Result<i32> {
     let mut positions = HashSet::new();
     let mut rope = Rope::new(2);
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -143,7 +143,7 @@ fn fetch_long_tail_position_count(length: i32, filename: &str) -> io::Result<i32
     let mut positions = HashSet::new();
     let mut rope = Rope::new(length);
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

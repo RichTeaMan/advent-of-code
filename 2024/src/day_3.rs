@@ -15,7 +15,7 @@ fn calc_mul_instructions(filename: &str) -> io::Result<i32> {
     let re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
 
     let mut result = 0;
-    for line in lines.flatten() {
+    for line in lines {
         for (_, [arg_a_str, arg_b_str]) in re.captures_iter(&line).map(|c| c.extract()) {
             let arg_a = arg_a_str.parse::<i32>().unwrap();
             let arg_b = arg_b_str.parse::<i32>().unwrap();
@@ -32,7 +32,7 @@ fn calc_do_mul_instructions(filename: &str) -> io::Result<i32> {
     let mut mult_enabled = true;
 
     let mut result = 0;
-    for line in lines.flatten() {
+    for line in lines {
         for segment in line.split(')') {
             if let Some((_, [arg_a_str, arg_b_str])) = mult_re
                 .captures(format!("{})", segment).as_str())

@@ -61,7 +61,7 @@ fn find_syntax_errors(filename: &str) -> io::Result<i32> {
     let mut score = 0;
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }
@@ -92,7 +92,7 @@ fn solve_syntax_errors(filename: &str) -> io::Result<i64> {
     let mut scores = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

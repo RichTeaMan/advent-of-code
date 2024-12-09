@@ -156,7 +156,7 @@ fn load_displays(filename: &str) -> io::Result<Vec<DisplayEntry>> {
     let mut displays = Vec::new();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

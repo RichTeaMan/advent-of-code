@@ -6,7 +6,7 @@ use std::{
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 struct ElfFile {
     pub name: String,
@@ -104,7 +104,7 @@ fn fetch_file_tree(filename: &str) -> io::Result<Rc<RefCell<ElfFile>>> {
     let mut current_dir = root.clone();
 
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         // cd command
         if line.starts_with("$ cd") {
             let change_dir = line.replace("$ cd ", "");

@@ -64,7 +64,7 @@ fn calc_sim_score(line: &str) -> io::Result<i32> {
 fn fetch_digits(filename: &str) -> io::Result<Vec<(i32, i32)>> {
     let lines = read_lines(filename)?;
     let mut elements = vec![];
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

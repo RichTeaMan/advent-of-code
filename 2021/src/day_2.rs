@@ -15,7 +15,7 @@ fn calc_position(filename: &str) -> io::Result<i32> {
     let mut x = 0;
     let mut y = 0;
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if let Some((direction, distance_str)) = line.split(' ').collect_tuple() {
             if let Ok(distance) = distance_str.parse::<i32>() {
                 match direction {
@@ -37,7 +37,7 @@ fn calc_position_with_aim(filename: &str) -> io::Result<i32> {
     let mut y = 0;
     let mut aim = 0;
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         if let Some((direction, distance_str)) = line.split(' ').collect_tuple() {
             if let Ok(distance) = distance_str.parse::<i32>() {
                 match direction {

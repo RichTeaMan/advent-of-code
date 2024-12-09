@@ -19,7 +19,7 @@ fn load_map(filename: &str) -> io::Result<HashMap<(i32, i32), i32>> {
 
     let lines = read_lines(filename)?;
     let mut y = 0;
-    for line in lines.flatten() {
+    for line in lines {
         if line.is_empty() {
             continue;
         }

@@ -2,7 +2,7 @@ use std::io::{self};
 
 use itertools::Itertools;
 
-use crate::file_utils::read_lines;
+use utils::file_utils::read_lines;
 
 pub fn day_6() -> io::Result<i32> {
     fetch_pattern_position(4, "./inputs/day-6-input.txt")
@@ -14,10 +14,9 @@ pub fn day_6_part_2() -> io::Result<i32> {
 
 fn fetch_pattern_position(pattern_length: usize, filename: &str) -> io::Result<i32> {
     let lines = read_lines(filename)?;
-    for line in lines.flatten() {
+    for line in lines {
         for (n, _) in line
             .chars()
-            .into_iter()
             .skip(pattern_length - 1)
             .enumerate()
         {
