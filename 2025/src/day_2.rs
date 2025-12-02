@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::{
     collections::HashMap,
     io::{self},
@@ -55,41 +56,44 @@ fn solve_deep_invalid_ids(filename: &str) -> io::Result<u64> {
 
     let mut invalid_id_sum: u64 = 0;
 
+    let mut index_map = HashMap::new();
+
     for (a, b) in ranges {
         for v in a..=b {
-            let v_str = v.to_string();
-
+            let chunk = v.to_string();
+            let chunk_chars = chunk.chars().collect_vec();
             // ehh?
-            if v_str.len() == 1 {
+            if chunk.len() == 1 {
                 continue;
             }
-            for factor in factor_lookup.get(&v_str.len()).unwrap() {
-                let mut chunk = v_str.clone();
-                let mut last_chunk_opt = None;
+            for factor in factor_lookup.get(&chunk.len()).unwrap() {
                 let mut unequal_found = false;
 
-                while !chunk.is_empty() && !unequal_found {
-                    let c = chunk.clone();
-                    let (a, b) = c.split_at(*factor);
-                    if let Some(last_chunk) = last_chunk_opt {
-                        if last_chunk == a {
-                            last_chunk_opt = Some(a.to_string());
-                        } else {
-                            // not equal found, abort
+                let indexes = index_map
+                    .entry((factor, chunk.len()))
+                    .or_insert_with(|| (0..chunk.len()).filter(|e| e % factor == 0).collect_vec());
+                //let indexes = (0..chunk.len()).filter(|e| e % factor == 0).collect_vec();
+
+                for n in 0..*factor {
+                    let first = chunk_chars[n];
+
+                    for letter_i in indexes.clone() {
+                        //println!("{:?}", &indexes);
+                        //println!("len: {}, fac: {}, n: {}", chunk.len(), factor, letter_i + n);
+                        let letter = chunk_chars[letter_i + n];
+                        if first != letter {
+                            // not equals
                             unequal_found = true;
                             break;
                         }
-                    } else {
-                        last_chunk_opt = Some(a.to_string());
                     }
-                    chunk = b.to_string();
-                    debug_assert!(
-                        chunk.is_empty() || chunk.len() % factor == 0 || chunk.len() < c.len()
-                    );
+                    if unequal_found {
+                        break;
+                    }
                 }
 
                 if !unequal_found {
-                    invalid_id_sum += v_str.parse::<u64>().unwrap();
+                    invalid_id_sum += chunk.parse::<u64>().unwrap();
                     break;
                 }
             }
