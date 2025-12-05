@@ -13,7 +13,7 @@ pub fn day_4_part_2() -> io::Result<u64> {
 }
 
 fn find_rolls(filename: &str) -> io::Result<u64> {
-    let coords = fetch_lines(filename)?;
+    let coords = fetch_map(filename)?;
 
     let mut rolls = 0;
     for coord in &coords {
@@ -31,7 +31,7 @@ fn find_rolls(filename: &str) -> io::Result<u64> {
 }
 
 fn find_and_remove_rolls(filename: &str) -> io::Result<u64> {
-    let mut coords = fetch_lines(filename)?;
+    let mut coords = fetch_map(filename)?;
 
     let mut rolls = 0;
     loop {
@@ -45,8 +45,7 @@ fn find_and_remove_rolls(filename: &str) -> io::Result<u64> {
                 < 4
             {
                 rolls += 1;
-            }
-            else {
+            } else {
                 new_coords.insert(*coord);
             }
         }
@@ -58,7 +57,7 @@ fn find_and_remove_rolls(filename: &str) -> io::Result<u64> {
     Ok(rolls)
 }
 
-fn fetch_lines(filename: &str) -> io::Result<HashSet<Coordinate>> {
+fn fetch_map(filename: &str) -> io::Result<HashSet<Coordinate>> {
     let mut result = HashSet::new();
 
     let lines = read_lines(filename)?;
