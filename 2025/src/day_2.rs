@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    io::{self},
-};
+use std::io::{self};
 use utils::file_utils::read_lines;
 
 pub fn day_2() -> io::Result<u64> {
@@ -20,7 +17,7 @@ fn solve_invalid_ids(filename: &str) -> io::Result<u64> {
         for v in a..=b {
             let v_str = v.to_string();
 
-            if v_str.len() % 2 != 0 {
+            if !v_str.len().is_multiple_of(2) {
                 continue;
             }
 
@@ -39,59 +36,37 @@ fn solve_invalid_ids(filename: &str) -> io::Result<u64> {
 fn solve_deep_invalid_ids(filename: &str) -> io::Result<u64> {
     let ranges = fetch_range(filename)?;
 
-    let max_length = ranges.iter().map(|r| r.1.to_string().len()).max().unwrap();
-
-    let mut factor_lookup = HashMap::new();
-    for l in 2..=max_length {
-        let mut factors = Vec::new();
-
-        for i in 1..l {
-            if l % i == 0 {
-                factors.push(i);
-            }
-        }
-        factor_lookup.insert(l, factors);
-    }
-
     let mut invalid_id_sum: u64 = 0;
 
+    // shamelessly stolen from https://github.com/MizardX/AdventOfCode_2025/blob/main/src/day_02.rs
+    // my previous solution split the number string. functional, but took around 450ms. this is much faster
     for (a, b) in ranges {
         for v in a..=b {
-            let v_str = v.to_string();
-
-            // ehh?
-            if v_str.len() == 1 {
-                continue;
-            }
-            for factor in factor_lookup.get(&v_str.len()).unwrap() {
-                let mut chunk = v_str.clone();
-                let mut last_chunk_opt = None;
-                let mut unequal_found = false;
-
-                while !chunk.is_empty() && !unequal_found {
-                    let c = chunk.clone();
-                    let (a, b) = c.split_at(*factor);
-                    if let Some(last_chunk) = last_chunk_opt {
-                        if last_chunk == a {
-                            last_chunk_opt = Some(a.to_string());
-                        } else {
-                            // not equal found, abort
-                            unequal_found = true;
-                            break;
-                        }
-                    } else {
-                        last_chunk_opt = Some(a.to_string());
-                    }
-                    chunk = b.to_string();
-                    debug_assert!(
-                        chunk.is_empty() || chunk.len() % factor == 0 || chunk.len() < c.len()
-                    );
+            let invalid = match v {
+                10..=99 => v.is_multiple_of(11),
+                100..=999 => v.is_multiple_of(111),
+                1000..=9999 => v.is_multiple_of(101) || v.is_multiple_of(1111),
+                10000..=99999 => v.is_multiple_of(11111),
+                100000..=999999 => {
+                    v.is_multiple_of(1001) || v.is_multiple_of(10101) || v.is_multiple_of(111111)
                 }
-
-                if !unequal_found {
-                    invalid_id_sum += v_str.parse::<u64>().unwrap();
-                    break;
+                1000000..=9999999 => v.is_multiple_of(1111111),
+                10000000..=99999999 => {
+                    v.is_multiple_of(10001)
+                        || v.is_multiple_of(1010101)
+                        || v.is_multiple_of(11111111)
                 }
+                100000000..=999999999 => v.is_multiple_of(1001001) || v.is_multiple_of(111111111),
+                1000000000..=9999999999 => {
+                    v.is_multiple_of(100001)
+                        || v.is_multiple_of(101010101)
+                        || v.is_multiple_of(1111111111)
+                }
+                _ => false,
+            };
+
+            if invalid {
+                invalid_id_sum += v;
             }
         }
     }
