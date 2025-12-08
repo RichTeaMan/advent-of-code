@@ -26,11 +26,7 @@ fn calc_answers(filename: &str) -> io::Result<u64> {
 
     let mut result = 0;
     for i in 0..problem_count {
-        let nums: Vec<u64> = db
-            .math
-            .iter()
-            .map(|l| *l.get(i).unwrap())
-            .collect_vec();
+        let nums: Vec<u64> = db.math.iter().map(|l| *l.get(i).unwrap()).collect_vec();
 
         let answer: u64 = match db.operators.get(i).unwrap() {
             '+' => nums.iter().sum(),
