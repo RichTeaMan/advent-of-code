@@ -2,7 +2,8 @@ use core::num;
 use itertools::Itertools;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
-    io::{self}, iter,
+    io::{self},
+    iter,
 };
 use utils::file_utils::read_lines;
 
@@ -11,7 +12,7 @@ pub fn day_10() -> io::Result<u64> {
 }
 
 pub fn day_10_part_2() -> io::Result<u64> {
-    calc_jolt_presses2("./inputs/day-10-input.txt")
+    calc_jolt_presses4("./inputs/day-10-input.txt")
 }
 
 struct Machine {
@@ -77,7 +78,6 @@ fn jolt_state_change2(state: &Vec<u16>, machine: &Machine) -> Vec<(Vec<u16>, usi
 
     return states;
 }
-
 
 fn calc_presses(filename: &str) -> io::Result<u64> {
     let machines = fetch_machines(filename)?;
@@ -158,7 +158,7 @@ fn calc_jolt_presses(filename: &str) -> io::Result<u64> {
                     answer = new_presses;
                     continue;
                 }
-                
+
                 let mut should_add = true;
                 for (i, n) in n_s.iter().enumerate() {
                     let existing = machine.jolts.get(i).unwrap();
@@ -167,7 +167,7 @@ fn calc_jolt_presses(filename: &str) -> io::Result<u64> {
                         break;
                     }
                 }
-                if previous_states.contains(&(n_s.clone(), new_presses)){
+                if previous_states.contains(&(n_s.clone(), new_presses)) {
                     continue;
                 }
                 previous_states.insert((n_s.clone(), new_presses));
@@ -182,7 +182,6 @@ fn calc_jolt_presses(filename: &str) -> io::Result<u64> {
     }
     Ok(result)
 }
-
 
 fn calc_jolt_presses2(filename: &str) -> io::Result<u64> {
     let machines = fetch_machines(filename)?;
@@ -209,7 +208,9 @@ fn calc_jolt_presses2(filename: &str) -> io::Result<u64> {
         }
 
         let mut queue = VecDeque::new();
-        queue.push_front((start_state, start_presses, 0));
+        queue.push_front(start_state.clone());
+        let mut previous_states: HashMap<Vec<u16>, u16> = HashMap::new();
+        previous_states.insert(start_state, 0);
 
         let button_presses = fetch_max_button_presses(&machine);
         let mut answer = 0;
@@ -218,59 +219,286 @@ fn calc_jolt_presses2(filename: &str) -> io::Result<u64> {
             answer += j;
             combos *= *j as u64;
         }
-        println!("    {} combinations, {} presses -> {:?}", combos, answer, button_presses);
+        println!(
+            "    {} combinations, {} presses -> {:?}",
+            combos, answer, button_presses
+        );
 
-        let mut previous_states = HashSet::new();
+        let mut loops = 0;
 
         while queue.len() > 0 {
-            let (state, press_values, presses) = queue.pop_front().unwrap();
-            if presses >= answer {
-                continue;
+            let state = queue.pop_front().unwrap();
+            let presses = previous_states.get(&state).unwrap();
+            if *presses > answer {
+                //continue;
             }
             let new_presses = presses + 1;
+
+            loops += 1;
+            if loops % 1_000_000 == 0 {
+                println!("{} loops, {} queue", loops, queue.len());
+            }
+
             for (n_s, i_n_s) in jolt_state_change2(&state, &machine) {
-                
-                let mut new_press_values = press_values.clone();
-                let p = new_press_values.get_mut(i_n_s).unwrap();
-                *p += 1;
+                //let mut new_press_values = press_values.clone();
+                //let p = new_press_values.get_mut(i_n_s).unwrap();
+                //*p += 1;
 
                 if n_s == machine.jolts {
-                    answer = new_presses;
-                    println!("({}) {:?}", new_presses, new_press_values);
-                    continue;
+                    //answer = new_presses;
+                    //println!("({}) {:?}", new_presses, new_press_values);
+                    println!("({})", new_presses);
+                    //continue;
                 }
 
-                if  new_press_values.get(i_n_s).unwrap() > button_presses.get(i_n_s).unwrap() {
-                    continue;
-                }
-                
+                //if new_press_values.get(i_n_s).unwrap() > button_presses.get(i_n_s).unwrap() {
+                //    continue;
+                //}
+
                 let mut should_add = true;
-                for (i, n) in n_s.iter().enumerate() {
-                    let existing = machine.jolts.get(i).unwrap();
-                    if n > existing {
-                        should_add = false;
-                        break;
+                if previous_states.contains_key(&n_s) {
+                    should_add = false;
+                } else {
+                    for (i, n) in n_s.iter().enumerate() {
+                        let existing = machine.jolts.get(i).unwrap();
+                        if n > existing {
+                            should_add = false;
+                            break;
+                        }
                     }
                 }
 
-                if previous_states.contains(&(n_s.clone(), new_presses)){
-                    continue;
-                }
-                previous_states.insert((n_s.clone(), new_presses));
+                previous_states
+                    .entry(n_s.clone())
+                    .and_modify(|e| *e = new_presses.min(*e))
+                    .or_insert(new_presses);
+
+                //previous_states.insert((n_s.clone(), new_presses));
 
                 if should_add {
-                    queue.push_front((n_s, new_press_values, new_presses));
+                    //queue.push_back((n_s, new_press_values, new_presses));
+                    queue.push_back(n_s);
                 }
             }
         }
-        println!("    complete: {}", answer);
+        let answer = previous_states.get(&machine.jolts).unwrap();
+        println!("    complete: {} | {} loops", answer, loops);
 
-        result += answer as u64;
+        result += *answer as u64;
     }
     Ok(result)
 }
 
+fn calc_jolt_presses3(filename: &str) -> io::Result<u64> {
+    let machines = fetch_machines(filename)?;
 
+    let mut result = 0_u64;
+
+    for (mi, machine) in machines.iter().enumerate() {
+        println!(
+            "Starting machine {} ([{}])",
+            mi,
+            machine
+                .lights
+                .iter()
+                .map(|c| if *c { '#' } else { '.' })
+                .join("")
+        );
+        let mut start_state = Vec::new();
+        for _ in 0..(machine.jolts.len() as usize) {
+            start_state.push(0_u16);
+        }
+        let mut start_presses = Vec::new();
+        for _ in 0..(machine.buttons.len()) {
+            start_presses.push(0_u16);
+        }
+
+        let mut queue = Vec::new();
+        queue.push(start_state.clone());
+        let mut previous_states: HashMap<Vec<u16>, u16> = HashMap::new();
+        previous_states.insert(start_state, 0);
+
+        let button_presses = fetch_max_button_presses(&machine);
+        let mut answer = 0;
+        let mut combos = 1_u64;
+        for j in &button_presses {
+            answer += j;
+            combos *= *j as u64;
+        }
+        println!(
+            "    {} combinations, {} presses -> {:?}",
+            combos, answer, button_presses
+        );
+
+        let mut loops = 0;
+
+        let mut unvisited = Vec::new();
+
+        while queue.len() > 0 || unvisited.len() > 0 {
+            println!("{} unvisisted, {} queue", unvisited.len(), queue.len());
+            for state in unvisited {
+                let presses = previous_states.get(&state).unwrap();
+                if *presses > answer {
+                    continue;
+                }
+                let new_presses = presses + 1;
+
+                loops += 1;
+                if loops % 1_000_000 == 0 {
+                    println!("     {} loops, {} queue", loops, queue.len());
+                }
+
+                for (n_s, i_n_s) in jolt_state_change2(&state, &machine) {
+                    //let mut new_press_values = press_values.clone();
+                    //let p = new_press_values.get_mut(i_n_s).unwrap();
+                    //*p += 1;
+
+                    if n_s == machine.jolts {
+                        //answer = new_presses;
+                        //println!("({}) {:?}", new_presses, new_press_values);
+                        println!("({})", new_presses);
+                        //continue;
+                    }
+
+                    //if new_press_values.get(i_n_s).unwrap() > button_presses.get(i_n_s).unwrap() {
+                    //    continue;
+                    //}
+
+                    let mut should_add = true;
+                    if previous_states.contains_key(&n_s) {
+                        should_add = false;
+                    } else {
+                        for (i, n) in n_s.iter().enumerate() {
+                            let existing = machine.jolts.get(i).unwrap();
+                            if n > existing {
+                                should_add = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    previous_states
+                        .entry(n_s.clone())
+                        .and_modify(|e| *e = new_presses.min(*e))
+                        .or_insert(new_presses);
+
+                    //previous_states.insert((n_s.clone(), new_presses));
+
+                    if should_add {
+                        //queue.push_back((n_s, new_press_values, new_presses));
+                        queue.push(n_s);
+                    }
+                }
+            }
+            queue.sort_unstable_by(|a, b| {
+                previous_states
+                    .get(b)
+                    .unwrap()
+                    .cmp(previous_states.get(a).unwrap())
+            });
+            unvisited = queue;
+            queue = Vec::new();
+
+            let mut p = HashMap::new();
+            for n in &unvisited {
+                let a = previous_states.get(n).unwrap();
+                p.insert(n.clone(), *a);
+            }
+            if let Some(j) = previous_states.get(&machine.jolts) {
+                p.insert(machine.jolts.clone(), *j);
+            }
+            previous_states = p;
+        }
+        let answer = previous_states.get(&machine.jolts).unwrap();
+        println!("    complete: {} | {} loops", answer, loops);
+
+        result += *answer as u64;
+    }
+    Ok(result)
+}
+
+fn calc_jolt_presses4(filename: &str) -> io::Result<u64> {
+    let machines = fetch_machines(filename)?;
+
+    let mut result = 0_u64;
+
+    for (mi, machine) in machines.iter().enumerate() {
+        println!(
+            "Starting machine {} ([{}])",
+            mi,
+            machine
+                .lights
+                .iter()
+                .map(|c| if *c { '#' } else { '.' })
+                .join("")
+        );
+        let mut start_state = Vec::new();
+        for _ in 0..(machine.jolts.len() as usize) {
+            start_state.push(0_u16);
+        }
+        let mut start_presses = Vec::new();
+        for _ in 0..(machine.buttons.len()) {
+            start_presses.push(0_u16);
+        }
+
+        let mut queue = VecDeque::new();
+        queue.push_front(start_state.clone());
+        let mut previous_states: HashMap<Vec<u16>, u16> = HashMap::new();
+        previous_states.insert(start_state, 0);
+
+        let button_presses = fetch_max_button_presses(&machine);
+        let mut answer = 0;
+        let mut combos = 1_u64;
+        for j in &button_presses {
+            answer += j;
+            combos *= *j as u64;
+        }
+
+        let ranges = button_presses.iter().map(|b| 0..=*b).collect_vec();
+        let cart_prod = ranges.into_iter().multi_cartesian_product();
+
+        let mut answers = Vec::new();
+        let mut best = combos;
+        for r in cart_prod {
+            let mut result = Vec::with_capacity(machine.jolts.len());
+            for _ in 0..(machine.jolts.len() as usize) {
+                result.push(0_u16);
+            }
+            let mut total_presses = 0_u64;
+            for (i, v) in r.iter().enumerate() {
+                let mut abandon = false;
+                let button = machine.buttons.get(i).unwrap();
+                for b in button {
+                    let presses = result.get_mut(*b as usize).unwrap();
+                    let target_presses = machine.jolts.get(*b as usize).unwrap().clone();
+                    *presses += v;
+                    if *presses > target_presses {
+                        abandon = true;
+                        break;
+                    }
+                }
+                if abandon {
+                    break;
+                }
+                total_presses += *v as u64;
+                if total_presses > best {
+                    break;
+                }
+            }
+            if result == machine.jolts {
+                answers.push(total_presses);
+                best = *answers.iter().min().unwrap() as u64;
+            }
+        }
+
+        debug_assert!(!answers.is_empty());
+
+        answers.sort();
+
+        result += *answers.first().unwrap() as u64;
+    }
+    Ok(result)
+}
 
 fn fetch_max_button_presses(machine: &Machine) -> Vec<u16> {
     let mut button_max = Vec::new();
@@ -287,7 +515,6 @@ fn fetch_max_button_presses(machine: &Machine) -> Vec<u16> {
     }
     button_max
 }
-
 
 fn fetch_machines(filename: &str) -> io::Result<Vec<Machine>> {
     let mut result = Vec::new();
@@ -352,7 +579,7 @@ mod tests {
     #[test]
     fn part_2_small_test() {
         assert_eq!(
-            calc_jolt_presses2("./inputs/day-10-input-test.txt").unwrap(),
+            calc_jolt_presses4("./inputs/day-10-input-test.txt").unwrap(),
             33
         );
     }
